@@ -1,0 +1,13 @@
+<form action="{{ url_for(request.endpoint) }}" id="form" method="post" enctype="multipart/form-data">
+    {{ form.hidden_tag() }}
+    {% for field in form if field.name != 'csrf_token' and field.name != 'test' %}
+        <div class="form-group">
+            {{ field.label() }}
+            {{ field(class_="form-control") }}
+            {% for error in field.errors %}
+                <div class="error">{{ error }}</div>
+            {% endfor %}
+        </div>
+    {% endfor %}
+    <input type="submit" value="Upload" class="btn btn-primary">
+</form>
