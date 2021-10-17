@@ -1,0 +1,4 @@
+<a href="upload">Upload form</a><br/><br/>
+{% for document in documents %}
+    [{{ document['id'] }}] <a href="/progress?uuid={{ document['uuid'] }}">{{ document['filename'] }}</a> [{{ document['ready'] }}/{{ document['pages'] }} {{ document['status'] }}]<br/>
+{% endfor %}

@@ -12,14 +12,14 @@ from converter import UPLOAD_PATH, DB
 from converter.utils import convert2pdf
 
 
-base = Blueprint('forms', __name__, url_prefix='/')
+base = Blueprint('forms', __name__)
 
 
 class UploadForm(FlaskForm):
     document = file.FileField(validators=[file.FileRequired()])
 
 
-@base.route('/', methods=('GET', 'POST'))
+@base.route('/upload', methods=('GET', 'POST'))
 def load_document():
     form = UploadForm()
     if form.validate_on_submit():
@@ -32,7 +32,11 @@ def load_document():
         thread = Thread(target=convert2pdf, args=(doc_uuid, document.filename))
         thread.start()
 
-        return redirect(f'/progress?uuid={doc_uuid}')
+        response = {
+            'uuid': doc_uuid
+        }
+        return jsonify(response)
+
     return templating.render_template('form.html', form=form)
 
 
@@ -42,23 +46,23 @@ def get_progress():
 
     connection = sqlite3.connect(DB)
     cursor = connection.cursor()
-
-    cursor.execute(f"select pages, ready, status from "
+    cursor.execute(f"select pages, ready, status, msg from "
                    f"documents where uuid = '{doc_id}'")
     rows = cursor.fetchall()
 
     response = {'uuid': doc_id, 'files': [], 'pages': None,
-                'ready': None, 'status': None}
+                'ready': None, 'status': None, 'message': ''}
     if rows:
-        pages, ready, status = rows[0]
-        pages = pages or 0
+        pages, ready, status, msg = rows[0]
         response['pages'] = pages
         response['ready'] = ready
         response['status'] = status
-        response['files'] = [
-            urljoin(request.host_url, f'file/{doc_id}/{i + 1}.jpg')
-            for i in range(pages)
-        ]
+        response['message'] = msg
+        if pages is not None:
+            response['files'] = [
+                urljoin(request.host_url, f'file/{doc_id}/{i + 1}.jpg')
+                for i in range(pages)
+            ]
     return jsonify(response)
 
 
@@ -66,3 +70,24 @@ def get_progress():
 def send_js(uuid, page):
     return send_from_directory(os.path.join(UPLOAD_PATH, f'{uuid}/pages'),
                                f'{uuid}_{page}.jpg')
+
+
+@base.route('/', methods=('GET', ))
+def main():
+    connection = sqlite3.connect(DB)
+    cursor = connection.cursor()
+    cursor.execute(f"select id, uuid, pages, ready, status, filename "
+                   f"from documents order by id desc")
+    rows = cursor.fetchall()
+    documents = []
+    for row in rows:
+        id, uuid, pages, ready, status, filename = row
+        documents.append({
+            'id': id,
+            'uuid': uuid,
+            'pages': pages or '?',
+            'ready': ready or '?',
+            'status': status,
+            'filename': filename or uuid,
+        })
+    return templating.render_template('main.html', documents=documents)
