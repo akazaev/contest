@@ -15,6 +15,9 @@ if __name__ == '__main__':
                    " (id integer primary key autoincrement, "
                    "uuid text, pages integer, ready integer, "
                    "status text, msg text, filename text);")
+    cursor.execute("create table if not exists nlp"
+                   " (id integer primary key autoincrement, "
+                   "uuid text, page integer, status text, json text);")
     connection.commit()
 
     app = create_app()

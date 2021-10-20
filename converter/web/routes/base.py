@@ -1,4 +1,5 @@
 import os
+import json
 import sqlite3
 from threading import Thread
 import uuid
@@ -67,9 +68,34 @@ def get_progress():
 
 
 @base.route('/file/<uuid>/<page>.jpg')
-def send_js(uuid, page):
+def load_page(uuid, page):
     return send_from_directory(os.path.join(UPLOAD_PATH, f'{uuid}/pages'),
                                f'{uuid}_{page}.jpg')
+
+
+@base.route('/nlp/<uuid>/<page>.json')
+def load_nlp(uuid, page):
+    if page.isdigit():
+        page = int(page)
+    else:
+        page = int(page.split('_')[1])
+
+    connection = sqlite3.connect(DB)
+    cursor = connection.cursor()
+    cursor.execute(f"select status, json from "
+                   f"nlp where uuid = '{uuid}' and page = {page}")
+    rows = cursor.fetchall()
+
+    response = {'uuid': uuid, 'page': page, 'status': None, 'boxes': None}
+    if rows:
+        status, boxes = rows[0]
+        response['status'] = status
+        if boxes:
+            boxes = json.loads(boxes)
+            response['boxes'] = boxes
+    else:
+        response['status'] = 'not_found'
+    return jsonify(response)
 
 
 @base.route('/', methods=('GET', ))

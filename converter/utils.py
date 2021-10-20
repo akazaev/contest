@@ -1,9 +1,11 @@
 import logging
+import multiprocessing
 import os
 import subprocess
 import sqlite3
 
 from converter import UPLOAD_PATH, DB
+from converter.nlp import process_nlp
 from pdf2image import convert_from_path
 
 
@@ -54,16 +56,20 @@ def convert2pdf(uuid, filename):
                        f"status = 'jpg' where uuid = '{uuid}'")
     connection.commit()
 
-    for i, page in enumerate(pages, start=1):
-        try:
+    try:
+        for i, page in enumerate(pages, start=1):
             page.save(os.path.join(pages_path, f'{uuid}_{i}.jpg'), 'JPEG')
-        except Exception as err:
-            cursor.execute(f"update documents set status = 'jpg_failed',"
-                           f"msg = '{str(err)}' where uuid = '{uuid}'")
-        else:
-            cursor.execute(f"update documents set ready = {i} where "
-                           f"uuid = '{uuid}'")
-        connection.commit()
+
+            proc = multiprocessing.Process(target=process_nlp, args=(uuid, i, ))
+            proc.start()
+    except Exception as err:
+        cursor.execute(f"update documents set status = 'jpg_failed',"
+                       f"msg = '{str(err)}' where uuid = '{uuid}'")
+    else:
+        cursor.execute(f"update documents set ready = {i} where "
+                       f"uuid = '{uuid}'")
+    connection.commit()
+
 
     cursor.execute(f"update documents set  "
                    f"status = 'ready' where uuid = '{uuid}'")
