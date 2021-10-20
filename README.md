@@ -17,7 +17,7 @@ API
 
 Get conversion progress
 -----------------------
-http://127.0.0.1:5000/progress?uuid=<uuid>
+http://127.0.0.1:5000/progress?uuid={uuid}
 
 Example
 
@@ -62,7 +62,7 @@ http://127.0.0.1:5000/progress?uuid=a07f0256-258f-4464-9f6b-d25d1d06676d
 
 NLP progress check
 ------------------
-http://localhost:5000/nlp/<uuid>>/<page>.json
+http://localhost:5000/nlp/{uuid}/{page}.json
 
 Example:
 
