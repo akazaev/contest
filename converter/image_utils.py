@@ -19,7 +19,7 @@ def process_image(uuid, page, boxes):
         draw = ImageDraw.Draw(image)
         for box in boxes:
             x, y, w, h = box['x'], box['y'], box['w'], box['h']
-            shape = (x, y, w, h)
+            shape = (x, y, x + w, y + h)
             draw.rectangle(shape, fill="#000000", outline="black")
         image.save(output_file)
 
@@ -30,8 +30,8 @@ def process_image(uuid, page, boxes):
 if __name__ == '__main__':
     boxes = {'boxes': {
             'nlp': [
-                {'x': 100, 'y': 100, 'w': 200, 'h': 200}
+                {'x': 200, 'y': 100, 'w': 200, 'h': 200}
             ]
         }
     }
-    process_data('a8ff28dc-ac7e-40da-9eec-5553c061d853', 2, boxes)
+    process_image('a8ff28dc-ac7e-40da-9eec-5553c061d853', 2, boxes)
