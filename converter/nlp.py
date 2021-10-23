@@ -97,7 +97,7 @@ def process_nlp(args):
     # cv2.waitKey(0)
     with db.db() as connection:
         connection.execute(f"update nlp set status = 'ready', json = '{json.dumps(boxes)}' where "
-                           f"uuid = '{uuid}'")
+                           f"uuid = '{uuid}' and page = {page}")
 
 
 if __name__ == '__main__':

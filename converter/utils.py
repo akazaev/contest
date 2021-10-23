@@ -26,7 +26,8 @@ def convert2pdf(uuid, filename):
     pdf_path = os.path.join(path, f'{uuid}.pdf')
 
     ext = os.path.splitext(source)[1]
-    if ext.lower() != 'pdf':
+    print(ext.lower())
+    if ext.lower() != '.pdf':
         command = ['libreoffice', '--headless', '--convert-to',
                    f'pdf:writer_pdf_Export', f"{source}",
                    '--outdir', f"{path}"]
