@@ -47,7 +47,7 @@ def convert2pdf(uuid, filename):
 
     pages = []
     try:
-        pages = convert_from_path(pdf_path, 500)
+        pages = convert_from_path(pdf_path, 300)
     except Exception as err:
         cursor.execute(f"update documents set status = 'jpg_failed',"
                        f"msg = '{str(err)}' where uuid = '{uuid}'")
@@ -57,20 +57,20 @@ def convert2pdf(uuid, filename):
     connection.commit()
 
     try:
+        queue = []
         for i, page in enumerate(pages, start=1):
+            queue.append((uuid, i))
             page.save(os.path.join(pages_path, f'{uuid}_{i}.jpg'), 'JPEG')
-
-            proc = multiprocessing.Process(target=process_nlp, args=(uuid, i, ))
-            proc.start()
+            cursor.execute(f"update documents set ready = {i} where "
+                           f"uuid = '{uuid}'")
     except Exception as err:
-        cursor.execute(f"update documents set status = 'jpg_failed',"
-                       f"msg = '{str(err)}' where uuid = '{uuid}'")
+        cursor.execute(
+            f"update documents set status = 'jpg_failed', msg = '{str(err)}' where uuid = '{uuid}'")
     else:
-        cursor.execute(f"update documents set ready = {i} where "
-                       f"uuid = '{uuid}'")
-    connection.commit()
+        cursor.execute(f"update documents set  "
+                       f"status = 'ready' where uuid = '{uuid}'")
+        connection.commit()
+        connection.close()
 
-
-    cursor.execute(f"update documents set  "
-                   f"status = 'ready' where uuid = '{uuid}'")
-    connection.commit()
+        with multiprocessing.Pool() as pool:
+            pool.map(process_nlp, queue)

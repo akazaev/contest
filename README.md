@@ -4,13 +4,24 @@ Main page example
 =================
 
     Upload form
+
+    Documents conversion statuses
+
+    [26] documents_oiv_svedeniya_o_raskhodakh_za_2014.docx [3/3 ready]
+    [25] documents_oiv_svedeniya_o_raskhodakh_za_2014.docx [3/3 ready]
+
+    Documents parsing statuses
+
+    [26] documents_oiv_svedeniya_o_raskhodakh_za_2014.docx [3 pages]
+       documents_oiv_svedeniya_o_raskhodakh_za_2014.docx page 1/3 [ready]
+       documents_oiv_svedeniya_o_raskhodakh_za_2014.docx page 2/3 [ready]
+       documents_oiv_svedeniya_o_raskhodakh_za_2014.docx page 3/3 [ready]
     
-    [6] documents_oiv_svedeniya_o_raskhodakh_za_2014.docx [1/3 jpg]
-    [5] documents_oiv_svedeniya_o_dokhodakh_df_2016_god.xlsx [?/? pdf]
-    [4] documents_oiv_svedeniya_o_dokhodakh_df_2016_god.xlsx [24/24 ready]
-    [3] documents_oiv_svedeniya_o_dokhodakh_df_2016_god.xlsx [24/24 ready]
-    [2] documents_oiv_svedeniya-o-dokhodakh-za-2014(2).pdf [9/9 ready]
-    [1] documents_oiv_svedeniya_o_dokhodakh_raskhodakh_s_1_yanvarya_20_15_g_po_31.doc [5/5 ready]
+    [25] documents_oiv_svedeniya_o_raskhodakh_za_2014.docx [3 pages]
+       documents_oiv_svedeniya_o_raskhodakh_za_2014.docx page 1/3 [ready]
+       documents_oiv_svedeniya_o_raskhodakh_za_2014.docx page 2/3 [ready]
+       documents_oiv_svedeniya_o_raskhodakh_za_2014.docx page 3/3 [ready]
+
 
 API
 ===
@@ -104,4 +115,5 @@ http://localhost:5000/nlp/88fb3490-f40e-47f3-9736-abb42606bfb3/1.json
 **status** - 
 * not_found (not found or process hasn't started yet)
 * in_progress (parsing started)
+* parsed (text parsed)  
 * ready (parsing is completed)

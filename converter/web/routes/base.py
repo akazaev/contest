@@ -116,4 +116,26 @@ def main():
             'status': status,
             'filename': filename or uuid,
         })
-    return templating.render_template('main.html', documents=documents)
+
+    nlp = []
+    rows = cursor.execute(f"select distinct uuid from nlp order by id desc").fetchall()
+    for row in rows:
+        uuid = row[0]
+        document = cursor.execute(f"select id, filename, pages from documents where uuid = '{uuid}' order by id desc").fetchone()
+        pages = cursor.execute(f"select id, page, status uuid from nlp where uuid = '{uuid}' order by page").fetchall()
+        data = []
+        for page in pages:
+            data.append({
+                'id': page[0],
+                'page': page[1],
+                'status': page[2],
+            })
+        nlp.append({
+            'id': document[0],
+            'uuid': uuid,
+            'filename': document[1],
+            'pages': document[2],
+            'data': data
+        })
+
+    return templating.render_template('main.html', documents=documents, nlp=nlp)

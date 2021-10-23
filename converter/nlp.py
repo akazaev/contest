@@ -1,21 +1,23 @@
+import json
 import os
 import sqlite3
-import json
 
 import cv2
 import pytesseract
 from pytesseract import Output
 import spacy
-# download stopwords corpus, you need to run it once
 import nltk
-nltk.download("stopwords")
 from nltk.corpus import stopwords
 from pymystem3 import Mystem
 from string import punctuation
 from converter import UPLOAD_PATH, DB
 
+# download stopwords corpus, you need to run it once
+nltk.download("stopwords")
 
-def process_nlp(uuid, page):
+
+def process_nlp(args):
+    uuid, page = args
     # Create lemmatizer and stopwords list
 
     connection = sqlite3.connect(DB)
@@ -31,12 +33,11 @@ def process_nlp(uuid, page):
 
     def preprocess_text(text):
         tokens = mystem.lemmatize(text.lower())
-        tokens = [token for token in tokens if token not in russian_stopwords\
-                  and token != " " \
-                  and token.strip() not in punctuation]
+        tokens = [token for token in tokens
+                  if token not in russian_stopwords and token != " " and
+                  token.strip() not in punctuation]
 
         text = " ".join(tokens)
-
         return text
 
     # Grayscale, Gaussian blur, Otsu's threshold
@@ -55,26 +56,31 @@ def process_nlp(uuid, page):
 
     # Perform text extraction
     custom_tessaract_config = r'-l rus'
-    parsed_data = pytesseract.image_to_data(image, output_type=Output.DICT, config=custom_tessaract_config)
+    parsed_data = pytesseract.image_to_data(image, output_type=Output.DICT,
+                                            config=custom_tessaract_config)
     # print(parsed_data)
 
-    nlp = spacy.load("ru_core_news_lg")
+    cursor.execute(f"update nlp set status = 'parsed' where uuid = '{uuid}'")
+    connection.commit()
 
+    nlp = spacy.load("ru_core_news_lg")
     rect_thickness = -1
 
     boxes = {'nlp': []}
     n_boxes = len(parsed_data['text'])
     for i in range(n_boxes):
-    #     print(parsed_data['conf'][i])
+        # print(parsed_data['conf'][i])
         if float(parsed_data['conf'][i]) > 10:
             # parse text by nlp
             parsed_fio = nlp(preprocess_text(parsed_data['text'][i]))
-            #print([(w.text, w.pos_) for w in parsed_fio])
+            # print([(w.text, w.pos_) for w in parsed_fio])
             if 'PROPN' in {w.pos_ for w in parsed_fio}:
-                print(str(parsed_fio))
-                #TODO: JSON(list of bbox + FIO marker)
-                (x, y, w, h) = (parsed_data['left'][i], parsed_data['top'][i], parsed_data['width'][i], parsed_data['height'][i])
-                #image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 0), rect_thickness)
+                # print(str(parsed_fio))
+                x, y, w, h = (parsed_data['left'][i],
+                              parsed_data['top'][i],
+                              parsed_data['width'][i],
+                              parsed_data['height'][i])
+                # image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 0), rect_thickness)
                 boxes['nlp'].append({
                     'x': x,
                     'y': y,
@@ -83,12 +89,11 @@ def process_nlp(uuid, page):
                     'text': str(parsed_fio)
                 })
 
-    #cv2.imshow('image', image)
-    #cv2.waitKey(0)
+    # cv2.imshow('image', image)
+    # cv2.waitKey(0)
     cursor.execute(f"update nlp set status = 'ready', json = '{json.dumps(boxes)}' where "
                    f"uuid = '{uuid}'")
     connection.commit()
-
 
 
 if __name__ == '__main__':
