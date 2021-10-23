@@ -6,8 +6,8 @@ pytesseract
 spacy
 nltk
 pymystem3
-ru_core_news_sm
-ru_core_news_lg
+# python3 -m spacy download ru_core_news_sm
+# python3 -m spacy download ru_core_news_lg
 flask-cors
 pillow
 psutil
