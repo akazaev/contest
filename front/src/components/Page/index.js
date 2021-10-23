@@ -5,7 +5,7 @@ function Page({ uuid, page, pageNumber }) {
   const [nlp, setNlp] = useState();
 
   useEffect(() => {
-    fetch(`http://localhost:5000/nlp/${uuid}/${pageNumber}.json`, {
+    fetch(`http://localhost:5000/nlp/${uuid}/${pageNumber}`, {
       method: "get",
     })
       .then((response) => response.json())

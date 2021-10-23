@@ -4,7 +4,9 @@ import ProgressChecker from "./components/ProgressChecker";
 import Pages from "./components/Pages";
 
 function App() {
-  const [appState, setAppState] = useState({});
+  const [appState, setAppState] = useState({
+    docUuid: "ba0183d9-9ece-4cc9-8a9e-69bd2c71780e",
+  });
 
   function clearUuid() {
     setAppState({});
