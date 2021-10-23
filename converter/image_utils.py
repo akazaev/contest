@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw
 from converter import UPLOAD_PATH, db
 
 
-def process_data(uuid, page, boxes):
+def process_image(uuid, page, boxes):
     path = os.path.join(UPLOAD_PATH, uuid)
     pages_path = os.path.join(path, 'pages')
     page_file = os.path.join(pages_path, f'{page}.jpg')

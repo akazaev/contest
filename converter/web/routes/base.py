@@ -9,7 +9,7 @@ from flask_wtf import FlaskForm, file
 
 from converter import UPLOAD_PATH, db
 from converter.pdf_utils import convert2pdf
-from converter.image_utils import process_data
+from converter.image_utils import process_image
 
 
 base = Blueprint('forms', __name__)
@@ -184,7 +184,7 @@ def process_data(uuid, page):
             connection.execute(f"insert into 'exclude' (word) values('{word}');")
             connection.execute(f"delete from 'include' where word = '{word}'")
 
-    thread = multiprocessing.Process(target=process_data,
+    thread = multiprocessing.Process(target=process_image,
                                      args=(uuid, page, data))
     thread.start()
     return jsonify({'result': 'ok'})
