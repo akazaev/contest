@@ -3,3 +3,4 @@ upload
 .idea
 __pycache__
 examples
+*.pyc
