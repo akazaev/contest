@@ -77,6 +77,9 @@ def process_nlp(args):
             parsed_fio = nlp(preprocess_text(parsed_data['text'][i]))
             # print([(w.text, w.pos_) for w in parsed_fio])
             text = str(parsed_fio).lower()
+            if text.isspace():
+                continue
+
             propn = text not in exclude and(text in include or 'PROPN' in {w.pos_ for w in parsed_fio})
             # print(str(parsed_fio))
             x, y, w, h = (parsed_data['left'][i],
