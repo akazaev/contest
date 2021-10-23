@@ -174,7 +174,7 @@ def process_data(uuid, page):
     data = request.json
     boxes = data.get('boxes', {})
     nlp = boxes.get('nlp', [])
-    data = {'boxes': nlp}
+    data = {'boxes': {'nlp': nlp}}
 
     with db.db() as connection:
         connection.execute(f"update nlp set status = 'updated', final = '{json.dumps(data)}' where "
