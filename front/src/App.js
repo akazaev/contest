@@ -4,9 +4,11 @@ import ProgressChecker from "./components/ProgressChecker";
 import Pages from "./components/Pages";
 
 function App() {
-  const [appState, setAppState] = useState({
-    docUuid: "15b2dd81-2362-414b-9bb2-005aafb2ea0c",
-  });
+  const [appState, setAppState] = useState({});
+
+  function clearUuid() {
+    setAppState({});
+  }
 
   console.log(appState);
   return (
@@ -37,6 +39,9 @@ function App() {
         </div>
       </header>
       <div className="container mx-auto p-5">
+        <button className="btn-blue mb-4" onClick={clearUuid}>
+          Загрузить другой документ
+        </button>
         {appState?.docUuid ? (
           <>
             <ProgressChecker

@@ -19,10 +19,16 @@ function Page({ uuid, page, pageNumber }) {
   }, [uuid]);
 
   function handleDownload(boxes) {
-    const body = { boxes: { nlp: boxes.filter((box) => box?.propn) } };
+    const body = {
+      boxes: { nlp: boxes.filter((box) => box?.propn) },
+    };
     fetch(`http://localhost:5000/process/${uuid}/${pageNumber}`, {
-      method: "post",
-      body,
+      method: "POST",
+      headers: {
+        Accept: "application/json, text/plain, */*",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(body),
     })
       .then((response) => response.json())
       .then((result) => {
