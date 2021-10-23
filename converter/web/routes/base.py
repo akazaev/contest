@@ -19,6 +19,9 @@ base = Blueprint('forms', __name__)
 class UploadForm(FlaskForm):
     document = file.FileField(validators=[file.FileRequired()])
 
+    def validate(self):
+        return True
+
 
 @base.route('/upload', methods=('GET', 'POST'))
 def load_document():
