@@ -9,7 +9,7 @@ from flask import (
     Blueprint, request, redirect, templating, jsonify, send_from_directory)
 from flask_wtf import FlaskForm, file
 
-from converter import UPLOAD_PATH, DB
+from converter import UPLOAD_PATH, db
 from converter.utils import convert2pdf
 
 
@@ -48,11 +48,10 @@ def load_document():
 def get_progress():
     doc_id = request.args.get('uuid')
 
-    connection = sqlite3.connect(DB)
-    cursor = connection.cursor()
-    cursor.execute(f"select pages, ready, status, msg from "
-                   f"documents where uuid = '{doc_id}'")
-    rows = cursor.fetchall()
+    with db.db() as connection:
+        connection.execute(f"select pages, ready, status, msg from "
+                           f"documents where uuid = '{doc_id}'")
+        rows = connection.fetchall()
 
     response = {'uuid': doc_id, 'files': [], 'pages': None,
                 'ready': None, 'status': None, 'message': ''}
@@ -72,8 +71,7 @@ def get_progress():
 
 @base.route('/file/<uuid>/<page>.jpg')
 def load_page(uuid, page):
-    return send_from_directory(os.path.join(UPLOAD_PATH, f'{uuid}/pages'),
-                               f'{uuid}_{page}.jpg')
+    return send_from_directory(os.path.join(UPLOAD_PATH, f'{uuid}/pages'), f'{page}.jpg')
 
 
 @base.route('/nlp/<uuid>/<page>.json')
@@ -83,11 +81,10 @@ def load_nlp(uuid, page):
     else:
         page = int(page.split('_')[1])
 
-    connection = sqlite3.connect(DB)
-    cursor = connection.cursor()
-    cursor.execute(f"select status, json from "
-                   f"nlp where uuid = '{uuid}' and page = {page}")
-    rows = cursor.fetchall()
+    with db.db() as connection:
+        connection.execute(f"select status, json from "
+                       f"nlp where uuid = '{uuid}' and page = {page}")
+        rows = connection.fetchall()
 
     response = {'uuid': uuid, 'page': page, 'status': None, 'boxes': None}
     if rows:
@@ -103,11 +100,10 @@ def load_nlp(uuid, page):
 
 @base.route('/', methods=('GET', ))
 def main():
-    connection = sqlite3.connect(DB)
-    cursor = connection.cursor()
-    cursor.execute(f"select id, uuid, pages, ready, status, filename "
-                   f"from documents order by id desc")
-    rows = cursor.fetchall()
+    with db.db() as connection:
+        connection.execute(f"select id, uuid, pages, ready, status, filename "
+                           f"from documents order by id desc")
+        rows = connection.fetchall()
     documents = []
     for row in rows:
         id, uuid, pages, ready, status, filename = row
@@ -121,24 +117,49 @@ def main():
         })
 
     nlp = []
-    rows = cursor.execute(f"select distinct uuid from nlp order by id desc").fetchall()
-    for row in rows:
-        uuid = row[0]
-        document = cursor.execute(f"select id, filename, pages from documents where uuid = '{uuid}' order by id desc").fetchone()
-        pages = cursor.execute(f"select id, page, status uuid from nlp where uuid = '{uuid}' order by page").fetchall()
-        data = []
-        for page in pages:
-            data.append({
-                'id': page[0],
-                'page': page[1],
-                'status': page[2],
+    with db.db() as connection:
+        rows = connection.execute(f"select distinct uuid from nlp order by id desc").fetchall()
+        for row in rows:
+            uuid = row[0]
+            document = connection.execute(f"select id, filename, pages from documents where uuid = '{uuid}' order by id desc").fetchone()
+            pages = connection.execute(f"select id, page, status uuid from nlp where uuid = '{uuid}' order by page").fetchall()
+            data = []
+            for page in pages:
+                data.append({
+                    'id': page[0],
+                    'page': page[1],
+                    'status': page[2],
+                })
+            nlp.append({
+                'id': document[0],
+                'uuid': uuid,
+                'filename': document[1],
+                'pages': document[2],
+                'data': data
             })
-        nlp.append({
-            'id': document[0],
-            'uuid': uuid,
-            'filename': document[1],
-            'pages': document[2],
-            'data': data
-        })
 
     return templating.render_template('main.html', documents=documents, nlp=nlp)
+
+
+@base.route('/include', methods=('POST', ))
+def include_words():
+    data = request.json
+    words = data.get('words', [])
+    with db.db() as connection:
+        for word in words:
+            word = word.lower()
+            connection.execute(f"insert into 'include' (word) values('{word}');")
+            connection.execute(f"delete from 'exclude' where word = '{word}'")
+    return jsonify({'result': 'ok'})
+
+
+@base.route('/exclude', methods=('POST', ))
+def exclude_words():
+    data = request.json
+    words = data.get('words', [])
+    with db.db() as connection:
+        for word in words:
+            word = word.lower()
+            connection.execute(f"insert into 'exclude' (word) values('{word}');")
+            connection.execute(f"delete from 'include' where word = '{word}'")
+    return jsonify({'result': 'ok'})

@@ -10,7 +10,7 @@ import nltk
 from nltk.corpus import stopwords
 from pymystem3 import Mystem
 from string import punctuation
-from converter import UPLOAD_PATH, DB
+from converter import UPLOAD_PATH, db
 
 # download stopwords corpus, you need to run it once
 nltk.download("stopwords")
@@ -20,13 +20,15 @@ def process_nlp(args):
     uuid, page = args
     # Create lemmatizer and stopwords list
 
-    connection = sqlite3.connect(DB)
-    cursor = connection.cursor()
-    cursor.execute(f"insert or replace into nlp (uuid, page, status, json)"
-                   f" values('{uuid}', {page}, 'in_progress', '')")
-    connection.commit()
+    with db.db() as connection:
+        connection.execute(f"insert or replace into nlp (uuid, page, status, json)"
+                           f" values('{uuid}', {page}, 'in_progress', '')")
+        include = connection.execute(f"select word from include").fetchall()
+        exclude = connection.execute(f"select word from exclude").fetchall()
 
-    image_path = os.path.join(UPLOAD_PATH, f'{uuid}/pages', f'{uuid}_{page}.jpg')
+    exclude = set(word for word in exclude)
+    include = set(word for word in include)
+    image_path = os.path.join(UPLOAD_PATH, f'{uuid}/pages', f'{page}.jpg')
 
     mystem = Mystem()
     russian_stopwords = stopwords.words("russian")
@@ -60,8 +62,8 @@ def process_nlp(args):
                                             config=custom_tessaract_config)
     # print(parsed_data)
 
-    cursor.execute(f"update nlp set status = 'parsed' where uuid = '{uuid}'")
-    connection.commit()
+    with db.db() as connection:
+        connection.execute(f"update nlp set status = 'parsed' where uuid = '{uuid}'")
 
     nlp = spacy.load("ru_core_news_lg")
     rect_thickness = -1
@@ -74,27 +76,29 @@ def process_nlp(args):
             # parse text by nlp
             parsed_fio = nlp(preprocess_text(parsed_data['text'][i]))
             # print([(w.text, w.pos_) for w in parsed_fio])
-            if 'PROPN' in {w.pos_ for w in parsed_fio}:
-                # print(str(parsed_fio))
-                x, y, w, h = (parsed_data['left'][i],
-                              parsed_data['top'][i],
-                              parsed_data['width'][i],
-                              parsed_data['height'][i])
-                # image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 0), rect_thickness)
-                boxes['nlp'].append({
-                    'x': x,
-                    'y': y,
-                    'w': w,
-                    'h': h,
-                    'text': str(parsed_fio)
-                })
+            text = str(parsed_fio).lower()
+            propn = text not in exclude and(text in include or 'PROPN' in {w.pos_ for w in parsed_fio})
+            # print(str(parsed_fio))
+            x, y, w, h = (parsed_data['left'][i],
+                          parsed_data['top'][i],
+                          parsed_data['width'][i],
+                          parsed_data['height'][i])
+            # image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 0), rect_thickness)
+            boxes['nlp'].append({
+                'x': x,
+                'y': y,
+                'w': w,
+                'h': h,
+                'propn': propn,
+                'text': text
+            })
 
     # cv2.imshow('image', image)
     # cv2.waitKey(0)
-    cursor.execute(f"update nlp set status = 'ready', json = '{json.dumps(boxes)}' where "
-                   f"uuid = '{uuid}'")
-    connection.commit()
+    with db.db() as connection:
+        connection.execute(f"update nlp set status = 'ready', json = '{json.dumps(boxes)}' where "
+                           f"uuid = '{uuid}'")
 
 
 if __name__ == '__main__':
-    process_nlp('/home/aleksei/Projects/contest/upload/0ac35a93-3ccd-4b65-b56c-a66e699a7222/pages/0ac35a93-3ccd-4b65-b56c-a66e699a7222_1.jpg')
+    process_nlp(('45b9d57f-1a0d-4b7b-87b2-835ab5dd7536', 1))

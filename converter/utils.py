@@ -60,9 +60,8 @@ def convert2pdf(uuid, filename):
         queue = []
         for i, page in enumerate(pages, start=1):
             queue.append((uuid, i))
-            page.save(os.path.join(pages_path, f'{uuid}_{i}.jpg'), 'JPEG')
-            cursor.execute(f"update documents set ready = {i} where "
-                           f"uuid = '{uuid}'")
+            page.save(os.path.join(pages_path, f'{i}.jpg'), 'JPEG')
+            cursor.execute(f"update documents set ready = {i} where uuid = '{uuid}'")
     except Exception as err:
         cursor.execute(
             f"update documents set status = 'jpg_failed', msg = '{str(err)}' where uuid = '{uuid}'")

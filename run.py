@@ -1,7 +1,7 @@
 import os
-import sqlite3
 
-from converter import UPLOAD_PATH, DB
+from converter import UPLOAD_PATH
+from converter import db
 from converter.web.app import create_app
 
 
@@ -9,16 +9,18 @@ if __name__ == '__main__':
     if not os.path.exists(UPLOAD_PATH):
         os.mkdir(UPLOAD_PATH)
 
-    connection = sqlite3.connect(DB)
-    cursor = connection.cursor()
-    cursor.execute("create table if not exists documents"
-                   " (id integer primary key autoincrement, "
-                   "uuid text, pages integer, ready integer, "
-                   "status text, msg text, filename text);")
-    cursor.execute("create table if not exists nlp"
-                   " (id integer primary key autoincrement, "
-                   "uuid text, page integer, status text, json text);")
-    connection.commit()
+    with db.db() as connection:
+        connection.execute("create table if not exists documents"
+                           " (id integer primary key autoincrement, "
+                           "uuid text, pages integer, ready integer, "
+                           "status text, msg text, filename text);")
+        connection.execute("create table if not exists nlp"
+                           " (id integer primary key autoincrement, "
+                           "uuid text, page integer, status text, json text);")
+        connection.execute("create table if not exists include"
+                           " (id integer primary key autoincrement, word text unique on conflict ignore);")
+        connection.execute("create table if not exists exclude"
+                           " (id integer primary key autoincrement, word text unique on conflict ignore);")
 
     app = create_app()
     app.run(debug=True)
