@@ -1,16 +1,15 @@
 import os
 import json
-import sqlite3
-from threading import Thread
+import multiprocessing
 import uuid
 from urllib.parse import urljoin
 
-from flask import (
-    Blueprint, request, redirect, templating, jsonify, send_from_directory)
+from flask import Blueprint, request, templating, jsonify, send_from_directory
 from flask_wtf import FlaskForm, file
 
 from converter import UPLOAD_PATH, db
-from converter.utils import convert2pdf
+from converter.pdf_utils import convert2pdf
+from converter.image_utils import process_data
 
 
 base = Blueprint('forms', __name__)
@@ -33,7 +32,7 @@ def load_document():
         document = request.files['document']
         document.save(os.path.join(doc_path, document.filename))
 
-        thread = Thread(target=convert2pdf, args=(doc_uuid, document.filename))
+        thread = multiprocessing.Process(target=convert2pdf, args=(doc_uuid, document.filename))
         thread.start()
 
         response = {
@@ -74,7 +73,12 @@ def load_page(uuid, page):
     return send_from_directory(os.path.join(UPLOAD_PATH, f'{uuid}/pages'), f'{page}.jpg')
 
 
-@base.route('/nlp/<uuid>/<page>.json')
+@base.route('/file/<uuid>/<page>_new.jpg')
+def load_new_page(uuid, page):
+    return send_from_directory(os.path.join(UPLOAD_PATH, f'{uuid}/pages'), f'{page}_new.jpg')
+
+
+@base.route('/nlp/<uuid>/<page>')
 def load_nlp(uuid, page):
     if page.isdigit():
         page = int(page)
@@ -162,4 +166,25 @@ def exclude_words():
             word = word.lower()
             connection.execute(f"insert into 'exclude' (word) values('{word}');")
             connection.execute(f"delete from 'include' where word = '{word}'")
+    return jsonify({'result': 'ok'})
+
+
+@base.route('/process/<uuid>/<page>', methods=('POST', ))
+def process_data(uuid, page):
+    data = request.json
+    boxes = data.get('boxes', {})
+    nlp = boxes.get('nlp', [])
+    data = {'boxes': nlp}
+
+    with db.db() as connection:
+        connection.execute(f"update nlp set status = 'updated', final = '{json.dumps(data)}' where "
+                           f"uuid = '{uuid}' and page = {page}")
+        for box in nlp:
+            word = box['text'].lower()
+            connection.execute(f"insert into 'exclude' (word) values('{word}');")
+            connection.execute(f"delete from 'include' where word = '{word}'")
+
+    thread = multiprocessing.Process(target=process_data,
+                                     args=(uuid, page, data))
+    thread.start()
     return jsonify({'result': 'ok'})

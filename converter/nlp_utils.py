@@ -1,6 +1,5 @@
 import json
 import os
-import sqlite3
 
 import cv2
 import pytesseract
@@ -16,7 +15,7 @@ from converter import UPLOAD_PATH, db
 nltk.download("stopwords")
 
 
-def process_nlp(args):
+def nlp_analysis(args):
     uuid, page = args
     # Create lemmatizer and stopwords list
 
@@ -30,6 +29,7 @@ def process_nlp(args):
     include = set(word for word in include)
     image_path = os.path.join(UPLOAD_PATH, f'{uuid}/pages', f'{page}.jpg')
 
+    os.environ['OMP_THREAD_LIMIT'] = '1'
     mystem = Mystem()
     russian_stopwords = stopwords.words("russian")
 
@@ -57,13 +57,13 @@ def process_nlp(args):
     # cv2.imshow('invert', invert)
 
     # Perform text extraction
-    custom_tessaract_config = r'-l rus'
+    custom_tessaract_config = r'-l rus --jobs 50%'
     parsed_data = pytesseract.image_to_data(image, output_type=Output.DICT,
                                             config=custom_tessaract_config)
     # print(parsed_data)
 
     with db.db() as connection:
-        connection.execute(f"update nlp set status = 'parsed' where uuid = '{uuid}'")
+        connection.execute(f"update nlp set status = 'parsed' where uuid = '{uuid}' and page = {page}")
 
     nlp = spacy.load("ru_core_news_lg")
     rect_thickness = -1
@@ -104,4 +104,4 @@ def process_nlp(args):
 
 
 if __name__ == '__main__':
-    process_nlp(('45b9d57f-1a0d-4b7b-87b2-835ab5dd7536', 1))
+    nlp_analysis(('45b9d57f-1a0d-4b7b-87b2-835ab5dd7536', 1))
