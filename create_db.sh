@@ -1,3 +1,5 @@
+#!/bin/bash
+
 # remove old db
 rm documents.db
 
