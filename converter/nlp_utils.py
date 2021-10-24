@@ -1,5 +1,6 @@
 import json
 import os
+os.environ['OMP_THREAD_LIMIT'] = '1'
 
 import cv2
 import pytesseract

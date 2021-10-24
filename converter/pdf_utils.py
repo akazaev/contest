@@ -71,7 +71,7 @@ def convert2pdf(uuid, filename):
         with db.db() as connection:
             connection.execute(f"update documents set status = 'ready' where uuid = '{uuid}'")
 
-        cpu_count = psutil.cpu_count(logical=False)
+        cpu_count = psutil.cpu_count(logical=False) - 1
         with Pool(cpu_count) as pool:
             pool.map(nlp_analysis, queue)
 
