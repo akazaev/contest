@@ -28,6 +28,7 @@ function Page({ uuid, page, pageNumber }) {
   return (
     <Canvas
       nlpBoxes={nlp?.boxes?.nlp}
+      accuracy={nlp?.boxes?.value}
       pageNumber={pageNumber}
       uuid={uuid}
       pageStatus={nlp?.status}
