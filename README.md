@@ -1,3 +1,22 @@
+### Requirements
+
+- poppler-utils in `PATH`
+
+### How to start
+
+- install deps:
+
+```bash
+pip install -r requirements.txt
+```
+
+- run dev server
+
+```bash
+python3 run.py
+```
+
+
 Supports doc, docx, xls, rtf.
 
 Installation
