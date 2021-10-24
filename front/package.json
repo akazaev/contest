@@ -20,8 +20,8 @@
     "web-vitals": "^1.1.2"
   },
   "scripts": {
-    "start": "craco start",
-    "build": "craco build",
+    "start": "REACT_APP_API=http://localhost:5000 craco start",
+    "build": "REACT_APP_API=/ craco build",
     "test": "craco test",
     "eject": "react-scripts eject"
   },
