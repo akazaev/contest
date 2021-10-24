@@ -1,6 +1,6 @@
 import os
 import json
-import multiprocessing
+from multiprocessing.dummy import Process
 import uuid
 from urllib.parse import urljoin
 
@@ -32,7 +32,7 @@ def load_document():
         document = request.files['document']
         document.save(os.path.join(doc_path, document.filename))
 
-        thread = multiprocessing.Process(target=convert2pdf, args=(doc_uuid, document.filename))
+        thread = Process(target=convert2pdf, args=(doc_uuid, document.filename))
         thread.start()
 
         response = {
@@ -188,7 +188,6 @@ def process_data(uuid, page):
             connection.execute(f"insert into 'include' (word) values('{word}');")
             connection.execute(f"delete from 'exclude' where word = '{word}'")
 
-    thread = multiprocessing.Process(target=process_image,
-                                     args=(uuid, page, data))
+    thread = Process(target=process_image, args=(uuid, page, data))
     thread.start()
     return jsonify({'result': 'ok'})
