@@ -76,8 +76,8 @@ def nlp_analysis(args):
             # parse text by nlp
             parsed_fio = nlp(preprocess_text(parsed_data['text'][i]))
             # print([(w.text, w.pos_) for w in parsed_fio])
-            text = str(parsed_fio).lower()
-            if text.isspace():
+            text = str(parsed_fio).lower().strip()
+            if not text or text.isspace():
                 continue
 
             propn = False
