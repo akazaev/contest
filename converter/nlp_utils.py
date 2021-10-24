@@ -16,8 +16,7 @@ from converter import UPLOAD_PATH, db
 nltk.download("stopwords")
 
 
-def nlp_analysis(args):
-    uuid, page = args
+def nlp_analysis(uuid, page):
     # Create lemmatizer and stopwords list
 
     with db.db() as connection:

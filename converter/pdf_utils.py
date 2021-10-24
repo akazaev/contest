@@ -1,7 +1,8 @@
 import logging
-from multiprocessing.dummy import Pool
+from multiprocessing.dummy import Process
 import os
 import subprocess
+import time
 
 import psutil
 
@@ -72,8 +73,22 @@ def convert2pdf(uuid, filename):
             connection.execute(f"update documents set status = 'ready' where uuid = '{uuid}'")
 
         cpu_count = psutil.cpu_count(logical=False) - 1
-        with Pool(cpu_count) as pool:
-            pool.map(nlp_analysis, queue)
+        jobs = {}
+        while queue:
+            print(jobs.keys())
+            remove = []
+            for data, thread in jobs.items():
+                if not thread.is_alive():
+                    remove.append(data)
+            for data in remove:
+                jobs.pop(data)
+            if len(jobs) < cpu_count:
+                for i in range(cpu_count - len(jobs)):
+                    uuid, page = queue.pop(0)
+                    thread = Process(target=nlp_analysis, args=(uuid, page))
+                    thread.start()
+                    jobs[(uuid, page)] = thread
+            time.sleep(2)
 
 
 if __name__ == '__main__':
