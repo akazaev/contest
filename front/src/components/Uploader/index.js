@@ -27,6 +27,7 @@ function Uploader({ setAppState }) {
         setAppState((state) => ({ ...state, docUuid: result?.uuid }));
       })
       .catch((error) => {
+        setLoading(false);
         console.error("Error:", error);
       });
   };
