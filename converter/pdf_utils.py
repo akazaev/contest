@@ -1,5 +1,5 @@
 import logging
-from multiprocessing.dummy import Process
+from multiprocessing import Process
 import os
 import subprocess
 import time

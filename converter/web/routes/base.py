@@ -1,6 +1,6 @@
 import os
 import json
-from multiprocessing.dummy import Process
+from multiprocessing import Process
 import uuid
 from urllib.parse import urljoin
 
