@@ -88,8 +88,8 @@ http://127.0.0.1:5000/progress?uuid=a07f0256-258f-4464-9f6b-d25d1d06676d
 * jpg_failed (jpg processing failed)
 * ready (all the pages ready)
 
-NLP progress check
-------------------
+Page process info
+-----------------
 GET http://localhost:5000/nlp/{uuid}/{page}
 
 Example:
@@ -120,7 +120,8 @@ http://localhost:5000/nlp/88fb3490-f40e-47f3-9736-abb42606bfb3/1
       }, 
       "page": 1, 
       "status": "ready", 
-      "uuid": "88fb3490-f40e-47f3-9736-abb42606bfb3"
+      "uuid": "88fb3490-f40e-47f3-9736-abb42606bfb3",
+      "value": 0.8
     }
 
 **Json fields description**
@@ -130,6 +131,8 @@ http://localhost:5000/nlp/88fb3490-f40e-47f3-9736-abb42606bfb3/1
 **page** - page number;
 
 **status** - parsing status
+
+**value** - the value
 
 **status** - 
 * not_found (not found or process hasn't started yet)

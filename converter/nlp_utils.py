@@ -25,8 +25,8 @@ def nlp_analysis(args):
         include = connection.execute(f"select word from include").fetchall()
         exclude = connection.execute(f"select word from exclude").fetchall()
 
-    exclude = set(word for word in exclude)
-    include = set(word for word in include)
+    exclude = set(word[0].lower() for word in exclude)
+    include = set(word[0].lower() for word in include)
     image_path = os.path.join(UPLOAD_PATH, f'{uuid}/pages', f'{page}.jpg')
 
     os.environ['OMP_THREAD_LIMIT'] = '1'
@@ -66,9 +66,9 @@ def nlp_analysis(args):
         connection.execute(f"update nlp set status = 'parsed' where uuid = '{uuid}' and page = {page}")
 
     nlp = spacy.load("ru_core_news_lg")
-    rect_thickness = -1
 
     boxes = {'nlp': []}
+    i = n = 0
     n_boxes = len(parsed_data['text'])
     for i in range(n_boxes):
         # print(parsed_data['conf'][i])
@@ -80,7 +80,16 @@ def nlp_analysis(args):
             if text.isspace():
                 continue
 
-            propn = text not in exclude and(text in include or 'PROPN' in {w.pos_ for w in parsed_fio})
+            propn = False
+            if text in exclude:
+                propn = False
+            elif not(text in include or 'PROPN' in {w.pos_ for w in parsed_fio}):
+                propn = True
+
+            n += 1
+            if propn and text in include:
+                i += 1
+
             # print(str(parsed_fio))
             x, y, w, h = (parsed_data['left'][i],
                           parsed_data['top'][i],
@@ -95,6 +104,7 @@ def nlp_analysis(args):
                 'propn': propn,
                 'text': text
             })
+    boxes['value'] = i/n
 
     # cv2.imshow('image', image)
     # cv2.waitKey(0)

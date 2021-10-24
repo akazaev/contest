@@ -34,4 +34,4 @@ if __name__ == '__main__':
             ]
         }
     }
-    process_image('a8ff28dc-ac7e-40da-9eec-5553c061d853', 2, boxes)
+    process_image('a5708697-ce68-45c7-82be-032c7d70ea2b', 1, boxes)

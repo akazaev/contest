@@ -181,8 +181,8 @@ def process_data(uuid, page):
                            f"uuid = '{uuid}' and page = {page}")
         for box in nlp:
             word = box['text'].lower()
-            connection.execute(f"insert into 'exclude' (word) values('{word}');")
-            connection.execute(f"delete from 'include' where word = '{word}'")
+            connection.execute(f"insert into 'include' (word) values('{word}');")
+            connection.execute(f"delete from 'exclude' where word = '{word}'")
 
     thread = multiprocessing.Process(target=process_image,
                                      args=(uuid, page, data))

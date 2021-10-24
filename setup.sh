@@ -8,4 +8,6 @@ python3 -m spacy download ru_core_news_lg
 mkdir upload
 
 # init db
-cat converter/db/database.sql | sqlite3 database.db
+cat converter/db/database.sql | sqlite3 documents.db
+cat converter/db/surnames.sql | sqlite3 documents.db
+cat converter/db/names.sql | sqlite3 documents.db
