@@ -1,4 +1,4 @@
 #!/bin/bash
 
-cd front/public
+cd front/build
 python3 -m http.server 80
