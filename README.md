@@ -28,7 +28,7 @@ API
 
 Get conversion progress
 -----------------------
-http://127.0.0.1:5000/progress?uuid={uuid}
+GET http://127.0.0.1:5000/progress?uuid={uuid}
 
 Example
 
@@ -73,11 +73,64 @@ http://127.0.0.1:5000/progress?uuid=a07f0256-258f-4464-9f6b-d25d1d06676d
 
 NLP progress check
 ------------------
-http://localhost:5000/nlp/{uuid}/{page}.json
+GET http://localhost:5000/nlp/{uuid}/{page}
 
 Example:
 
-http://localhost:5000/nlp/88fb3490-f40e-47f3-9736-abb42606bfb3/1.json
+http://localhost:5000/nlp/88fb3490-f40e-47f3-9736-abb42606bfb3/1
+
+    {
+      "boxes": {
+        "nlp": [
+          {
+            "h": 100, 
+            "text": "\u043c\u043e\u0441\u043a\u0432\u0430", 
+            "w": 660, 
+            "x": 2006, 
+            "y": 699,
+            "propn": true
+          }, 
+            ...
+          {
+            "h": 32, 
+            "text": "\u043c\u043e\u0441\u043a\u0432\u0430", 
+            "w": 159, 
+            "x": 3948, 
+            "y": 5684,
+            "propn": false
+          }
+        ]
+      }, 
+      "page": 1, 
+      "status": "ready", 
+      "uuid": "88fb3490-f40e-47f3-9736-abb42606bfb3"
+    }
+
+**Json fields description**
+
+**boxes** - parsed text with x, y, h, w, propn (bool);
+
+**page** - page number;
+
+**status** - parsing status
+
+**status** - 
+* not_found (not found or process hasn't started yet)
+* in_progress (parsing started)
+* parsed (text parsed)  
+* ready (parsing is completed)
+
+
+Run image processing
+--------------------
+
+POST http://localhost:5000/process/{uuid}/{page}
+
+Example:
+
+http://localhost:5000/process/88fb3490-f40e-47f3-9736-abb42606bfb3/1
+
+Bode example:
 
     {
       "boxes": {
@@ -98,22 +151,30 @@ http://localhost:5000/nlp/88fb3490-f40e-47f3-9736-abb42606bfb3/1.json
             "y": 5684
           }
         ]
-      }, 
-      "page": 1, 
-      "status": "ready", 
-      "uuid": "88fb3490-f40e-47f3-9736-abb42606bfb3"
+      }
     }
 
-**Json fields description**
 
-**boxes** - parsed text with x, y, h, w;
+Tools
+-----
 
-**page** - page number;
+* Include words to vocabulary
 
-**status** - parsing status
+POST http://localhost:5000/inclide
 
-**status** - 
-* not_found (not found or process hasn't started yet)
-* in_progress (parsing started)
-* parsed (text parsed)  
-* ready (parsing is completed)
+Body example:
+
+    {
+        "words": ["word1", "word2""]
+    }
+
+
+* Exclude words from vocabulary
+
+POST http://localhost:5000/exclude
+
+Body example:
+
+    {
+        "words": ["word1", "word2""]
+    }

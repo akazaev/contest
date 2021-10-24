@@ -87,7 +87,7 @@ def load_nlp(uuid, page):
 
     with db.db() as connection:
         connection.execute(f"select status, json from "
-                       f"nlp where uuid = '{uuid}' and page = {page}")
+                           f"nlp where uuid = '{uuid}' and page = {page}")
         rows = connection.fetchall()
 
     response = {'uuid': uuid, 'page': page, 'status': None, 'boxes': None}
