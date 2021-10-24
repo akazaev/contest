@@ -4,3 +4,4 @@ upload
 __pycache__
 examples
 *.pyc
+debug

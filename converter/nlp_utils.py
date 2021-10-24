@@ -68,7 +68,7 @@ def nlp_analysis(args):
     nlp = spacy.load("ru_core_news_lg")
 
     boxes = {'nlp': []}
-    i = n = 0
+    c = n = 0
     n_boxes = len(parsed_data['text'])
     for i in range(n_boxes):
         # print(parsed_data['conf'][i])
@@ -84,11 +84,12 @@ def nlp_analysis(args):
             if text in exclude:
                 propn = False
             elif text in include or 'PROPN' in {w.pos_ for w in parsed_fio}:
+                print(parsed_fio)
                 propn = True
+                n += 1
 
-            n += 1
             if propn and text in include:
-                i += 1
+                c += 1
 
             # print(str(parsed_fio))
             x, y, w, h = (parsed_data['left'][i],
@@ -104,14 +105,45 @@ def nlp_analysis(args):
                 'propn': propn,
                 'text': text
             })
-    boxes['value'] = i/n
+    boxes['value'] = c/n
 
     # cv2.imshow('image', image)
     # cv2.waitKey(0)
     with db.db() as connection:
         connection.execute(f"update nlp set status = 'ready', json = '{json.dumps(boxes)}' where "
                            f"uuid = '{uuid}' and page = {page}")
+    return boxes
 
 
 if __name__ == '__main__':
-    nlp_analysis(('45b9d57f-1a0d-4b7b-87b2-835ab5dd7536', 1))
+    uuid = 'be3d9f24-9f0e-4498-b963-b2025fbe2fb8'
+    page = 2
+
+    # nlp_analysis((uuid, page))
+
+    with db.db() as connection:
+        connection.execute(f"select status, json from "
+                           f"nlp where uuid = '{uuid}' and page = {page}")
+        rows = connection.fetchall()
+    status, boxes = rows[0]
+    boxes = json.loads(boxes)
+
+    image_path = os.path.join(UPLOAD_PATH, f'{uuid}/pages', f'{page}.jpg')
+    image = cv2.imread(image_path)
+    print(boxes['value'])
+
+    words = boxes['nlp']
+    for word in words:
+        x = word['x']
+        y = word['y']
+        w = word['w']
+        h = word['h']
+        propn = word['propn']
+        if propn:
+            text = word['text']
+            #if text != 'сергей':
+            #    continue
+            # print(text, (x, y, w, h))
+            image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 0), -1)
+    image_path = os.path.join(UPLOAD_PATH, f'{uuid}/pages', f'{page}_test.jpg')
+    cv2.imwrite(image_path, image)

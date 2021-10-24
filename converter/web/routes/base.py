@@ -126,7 +126,11 @@ def main():
         for row in rows:
             uuid = row[0]
             document = connection.execute(f"select id, filename, pages from documents where uuid = '{uuid}' order by id desc").fetchone()
+            if not document:
+                continue
             pages = connection.execute(f"select id, page, status uuid from nlp where uuid = '{uuid}' order by page").fetchall()
+            if not pages:
+                continue
             data = []
             for page in pages:
                 data.append({
