@@ -2,7 +2,6 @@ import os
 
 from converter import UPLOAD_PATH
 from converter import db
-from converter.web.app import create_app
 
 
 if __name__ == '__main__':
@@ -21,6 +20,3 @@ if __name__ == '__main__':
                            " (id integer primary key autoincrement, word text unique on conflict ignore);")
         connection.execute("create table if not exists exclude"
                            " (id integer primary key autoincrement, word text unique on conflict ignore);")
-
-    app = create_app()
-    app.run(debug=True, host='0.0.0.0', port=5000)

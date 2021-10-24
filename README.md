@@ -1,5 +1,25 @@
 Supports doc, docx, xls, rtf.
 
+Installation
+============
+
+Run:
+
+    sudo apt-get install libreoffice tesseract-ocr tesseract-ocr-rus
+    pip3 install -r requirements.txt
+    python3 -m spacy download ru_core_news_sm
+    python3 -m spacy download ru_core_news_lg
+    python3 init.py
+
+
+Start
+=====
+
+Run:
+    
+    ./start.sh
+
+
 Main page example
 =================
 
@@ -178,3 +198,15 @@ Body example:
     {
         "words": ["word1", "word2""]
     }
+
+
+Output
+------
+
+* Get JPEG page:
+
+GET http://localhost:5000/file/<uuid>/<page>.jpg
+
+* Get obfuscated JPEG page:
+
+GET http://localhost:5000/file/<uuid>/<page>_new.jpg
