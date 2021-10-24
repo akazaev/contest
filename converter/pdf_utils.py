@@ -74,3 +74,7 @@ def convert2pdf(uuid, filename):
         cpu_count = psutil.cpu_count(logical=False)
         with multiprocessing.Pool(cpu_count) as pool:
             pool.map(nlp_analysis, queue)
+
+
+if __name__ == '__main__':
+    convert2pdf('', '')
