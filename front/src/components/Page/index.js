@@ -22,7 +22,7 @@ function Page({ uuid, page, pageNumber }) {
           });
       }
     },
-    nlp?.status === statuses.ready ? null : 1000
+    nlp?.status === statuses.ready ? null : 5000
   );
 
   return (
