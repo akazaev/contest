@@ -1,7 +1,9 @@
 import { useState } from "react";
+import Spinner from "../Spinner";
 
 function Uploader({ setAppState }) {
   const [selectedFile, setSelectedFile] = useState();
+  const [loading, setLoading] = useState(false);
   const [isSelected, setIsSelected] = useState(false);
 
   const changeHandler = (event) => {
@@ -13,7 +15,7 @@ function Uploader({ setAppState }) {
     const formData = new FormData();
 
     formData.append("document", selectedFile);
-
+    setLoading(true);
     fetch(`${process.env.REACT_APP_API}/upload`, {
       method: "POST",
       body: formData,
@@ -21,9 +23,11 @@ function Uploader({ setAppState }) {
       .then((response) => response.json())
       .then((result) => {
         console.log("Success:", result);
+        setLoading(false);
         setAppState((state) => ({ ...state, docUuid: result?.uuid }));
       })
       .catch((error) => {
+        setLoading(false);
         console.error("Error:", error);
       });
   };
@@ -74,18 +78,24 @@ function Uploader({ setAppState }) {
                   </p>
                 )}
                 <div className="mt-4">
-                  <input
-                    className="mr-2"
-                    type="file"
-                    name="file"
-                    onChange={changeHandler}
-                  />
-                  <button
-                    className="lg:mt-0 mt-4 btn-green"
-                    onClick={handleSubmission}
-                  >
-                    Отправить
-                  </button>
+                  {loading ? (
+                    <Spinner />
+                  ) : (
+                    <>
+                      <input
+                        className="mr-2"
+                        type="file"
+                        name="file"
+                        onChange={changeHandler}
+                      />
+                      <button
+                        className="lg:mt-0 mt-4 btn-green"
+                        onClick={handleSubmission}
+                      >
+                        Отправить
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>

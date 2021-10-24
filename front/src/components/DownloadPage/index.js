@@ -70,7 +70,7 @@ function DownloadPage({ boxes, uuid, pageNumber }) {
           });
       }
     },
-    isReady || isObfuscated ? null : 1000
+    isReady || isObfuscated ? null : 5000
   );
 
   return (
