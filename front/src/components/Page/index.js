@@ -1,53 +1,37 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Canvas from "../Canvas";
+import { useInterval } from "react-use";
+import statuses from "../../constants/statuses";
 
 function Page({ uuid, page, pageNumber }) {
   const [nlp, setNlp] = useState();
 
-  useEffect(() => {
-    fetch(`http://localhost:5000/nlp/${uuid}/${pageNumber}`, {
-      method: "get",
-    })
-      .then((response) => response.json())
-      .then((result) => {
-        console.log("Success:", result);
-        setNlp(result);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  }, [uuid]);
-
-  function handleDownload(boxes) {
-    const body = {
-      boxes: { nlp: boxes.filter((box) => box?.propn) },
-    };
-    fetch(`http://localhost:5000/process/${uuid}/${pageNumber}`, {
-      method: "POST",
-      headers: {
-        Accept: "application/json, text/plain, */*",
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    })
-      .then((response) => response.json())
-      .then((result) => {
-        console.log("Success:", result);
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  }
+  useInterval(
+    () => {
+      if (uuid) {
+        fetch(`${process.env.REACT_APP_API}/nlp/${uuid}/${pageNumber}`, {
+          method: "get",
+        })
+          .then((response) => response.json())
+          .then((result) => {
+            console.log("Success:", result);
+            setNlp(result);
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+    },
+    nlp?.status === statuses.ready ? null : 1000
+  );
 
   return (
-    <div>
-      {`http://localhost:5000/file/${uuid}/${pageNumber}.jpg`}
-      <Canvas
-        handleDownload={handleDownload}
-        nlpBoxes={nlp?.boxes?.nlp}
-        src={`http://localhost:5000/file/${uuid}/${pageNumber}.jpg`}
-      />
-    </div>
+    <Canvas
+      nlpBoxes={nlp?.boxes?.nlp}
+      pageNumber={pageNumber}
+      uuid={uuid}
+      pageStatus={nlp?.status}
+    />
   );
 }
 
