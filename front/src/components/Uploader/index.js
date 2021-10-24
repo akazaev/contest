@@ -74,8 +74,16 @@ function Uploader({ setAppState }) {
                   </p>
                 )}
                 <div className="mt-4">
-                  <input className="mr-2" type="file" name="file" onChange={changeHandler} />
-                  <button className="lg:mt-0 mt-4 btn-green" onClick={handleSubmission}>
+                  <input
+                    className="mr-2"
+                    type="file"
+                    name="file"
+                    onChange={changeHandler}
+                  />
+                  <button
+                    className="lg:mt-0 mt-4 btn-green"
+                    onClick={handleSubmission}
+                  >
                     Отправить
                   </button>
                 </div>
@@ -193,11 +201,21 @@ function Uploader({ setAppState }) {
               </div>
             </div>
           </div>
-          <img
-            className="lg:w-3/5 md:w-1/2 object-cover object-center rounded-lg md:mt-0 mt-12"
-            src="https://dummyimage.com/1200x500"
-            alt="step"
-          />
+          <div className="lg:w-3/5 md:w-1/2 object-cover object-center rounded-lg md:mt-0 mt-12">
+            <div className="h-full mt-4 p-4 bg-gradient-to-r from-purple-400 via-blue-500 to-indigo-500 rounded-3xl shadow-lg">
+              <div className="h-full rounded-3xl overflow-hidden shadow-lg">
+                <video
+                  autoPlay
+                  muted
+                  loop
+                  controls
+                  className="object-cover w-full h-full"
+                >
+                  <source src={"demo.webm"} type="video/webm" />
+                </video>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </div>
