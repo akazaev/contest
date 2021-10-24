@@ -25,7 +25,7 @@ function ProgressChecker({ uuid, setAppState }) {
           });
       }
     },
-    isReady ? null : 1000
+    isReady ? null : 5000
   );
 
   return (
@@ -33,7 +33,7 @@ function ProgressChecker({ uuid, setAppState }) {
       {progress ? (
         <div>
           {!isReady && <Spinner />}
-          Преобразовано: {progress?.pages || 0} из {progress?.ready || 0}{" "}
+          Преобразовано: {progress?.ready || 0} из {progress?.pages || 0}{" "}
           страниц
         </div>
       ) : (
