@@ -84,7 +84,6 @@ def nlp_analysis(args):
             if text in exclude:
                 propn = False
             elif text in include or 'PROPN' in {w.pos_ for w in parsed_fio}:
-                print(parsed_fio)
                 propn = True
                 n += 1
 
