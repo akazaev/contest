@@ -1,34 +1,46 @@
-import { useEffect, useState } from "react";
-
-const statusNew = 'new'
-const statusReady = 'ready'
+import { useState } from "react";
+import { useInterval } from "react-use";
+import statuses from "../../constants/statuses";
+import Spinner from "../Spinner";
 
 function ProgressChecker({ uuid, setAppState }) {
   const [progress, setProgress] = useState();
 
-  useEffect(() => {
-    fetch(`http://localhost:5000/progress?uuid=${uuid}`, {
-      method: "get",
-    })
-      .then((response) => response.json())
-      .then((result) => {
-        console.log("Success:", result);
-        setProgress(result);
-        setAppState((state) => ({ ...state, progress: result }));
-      })
-      .catch((error) => {
-        console.error("Error:", error);
-      });
-  }, [uuid]);
+  const isReady = progress?.status === statuses.ready;
+
+  useInterval(
+    () => {
+      if (uuid) {
+        fetch(`${process.env.REACT_APP_API}/progress?uuid=${uuid}`, {
+          method: "get",
+        })
+          .then((response) => response.json())
+          .then((result) => {
+            console.log("Success:", result);
+            setProgress(result);
+            setAppState((state) => ({ ...state, progress: result }));
+          })
+          .catch((error) => {
+            console.error("Error:", error);
+          });
+      }
+    },
+    isReady ? null : 1000
+  );
 
   return (
-    <div>
+    <div className="py-5 text-2xl">
       {progress ? (
         <div>
-          Распознано: {progress?.pages}/{progress?.ready}
+          {!isReady && <Spinner />}
+          Преобразовано: {progress?.pages || 0} из {progress?.ready || 0}{" "}
+          страниц
         </div>
       ) : (
-        "Загрузка..."
+        <>
+          <Spinner />
+          Загрузка...
+        </>
       )}
     </div>
   );
