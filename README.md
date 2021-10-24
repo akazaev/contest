@@ -205,8 +205,8 @@ Output
 
 * Get JPEG page:
 
-GET http://localhost:5000/file/<uuid>/<page>.jpg
+GET http://localhost:5000/file/{uuid}/{page}.jpg
 
 * Get obfuscated JPEG page:
 
-GET http://localhost:5000/file/<uuid>/<page>_new.jpg
+GET http://localhost:5000/file/{uuid}/{page}_new.jpg
