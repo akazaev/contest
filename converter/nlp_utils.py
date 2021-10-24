@@ -83,7 +83,7 @@ def nlp_analysis(args):
             propn = False
             if text in exclude:
                 propn = False
-            elif not(text in include or 'PROPN' in {w.pos_ for w in parsed_fio}):
+            elif text in include or 'PROPN' in {w.pos_ for w in parsed_fio}:
                 propn = True
 
             n += 1
@@ -95,7 +95,7 @@ def nlp_analysis(args):
                           parsed_data['top'][i],
                           parsed_data['width'][i],
                           parsed_data['height'][i])
-            # image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 0), rect_thickness)
+            # image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 0), -1)
             boxes['nlp'].append({
                 'x': x,
                 'y': y,
