@@ -20,7 +20,7 @@ const TestImage = ({ src }) => {
   return <Image image={image} />;
 };
 
-function Canvas({ uuid, nlpBoxes, pageNumber, pageStatus }) {
+function Canvas({ uuid, nlpBoxes, pageNumber, pageStatus, accuracy }) {
   const isObfuscated = pageStatus === statuses.obfuscated;
   const isReady = pageStatus === statuses.ready;
   const inInProgress = pageStatus === statuses.in_progress;
@@ -81,7 +81,10 @@ function Canvas({ uuid, nlpBoxes, pageNumber, pageStatus }) {
       {/*  Скачать png*/}
       {/*</button>*/}
       <div className="lg:w-4/5 md:w-1/2 md:pr-10">
-        <div className="w-full h-screen-half border-gray-500 border-2 rounded-lg overflow-hidden" ref={ref}>
+        <div
+          className="w-full h-screen-half border-gray-500 border-2 rounded-lg overflow-hidden"
+          ref={ref}
+        >
           <Stage
             draggable
             width={width}
@@ -94,9 +97,11 @@ function Canvas({ uuid, nlpBoxes, pageNumber, pageStatus }) {
             ref={stageRef}
           >
             <Layer>
-              <TestImage
-                src={`${process.env.REACT_APP_API}/file/${uuid}/${pageNumber}.jpg`}
-              />
+              {uuid && pageNumber && (
+                <TestImage
+                  src={`${process.env.REACT_APP_API}/file/${uuid}/${pageNumber}.jpg`}
+                />
+              )}
               {boxes &&
                 boxes.map((box, index) => {
                   if (box?.propn) {
@@ -168,7 +173,35 @@ function Canvas({ uuid, nlpBoxes, pageNumber, pageStatus }) {
             <Spinner /> Идет распознавание
           </div>
         ) : (
-          <DownloadPage boxes={boxes} uuid={uuid} pageNumber={pageNumber} />
+          <>
+            <div className="p-4 text-purple-600 mb-8 rounded-lg shadow bg-gradient-to-r from-purple-50 to-purple-100 flex">
+              <div className="flex-1 text-xl">
+                {Math.round(accuracy * 100)}%
+              </div>
+              <div className="text-right flex-1">
+                <a
+                  href="#"
+                  title="Уровень уверенности модели в качестве обезличивания"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-6 w-6 inline-block"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </a>
+              </div>
+            </div>
+            <DownloadPage boxes={boxes} uuid={uuid} pageNumber={pageNumber} />
+          </>
         )}
       </div>
     </div>

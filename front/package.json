@@ -21,7 +21,7 @@
   },
   "scripts": {
     "start": "REACT_APP_API=http://localhost:5000 craco start",
-    "build": "REACT_APP_API=/ craco build",
+    "build": "REACT_APP_API=http://178.154.192.31:5000 craco build",
     "test": "craco test",
     "eject": "react-scripts eject"
   },
