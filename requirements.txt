@@ -2,7 +2,6 @@ flask
 pdf2image
 flask_wtf
 opencv-python
-pytesseract
 spacy
 nltk
 pymystem3
@@ -10,3 +9,4 @@ flask-cors
 pillow
 psutil
 gunicorn
+pytesseract

@@ -6,7 +6,7 @@ Installation
 Run:
 
 
-    ./setup.sh
+    sudo ./setup.sh
 
 
 Start
@@ -14,7 +14,7 @@ Start
 
 Run:
     
-    ./start.sh
+    sudo ./start.sh
 
 
 Main page example
