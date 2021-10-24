@@ -104,7 +104,7 @@ def nlp_analysis(uuid, page):
                 'propn': propn,
                 'text': text
             })
-    boxes['value'] = c/n
+    boxes['value'] = c/n if n else 0
 
     # cv2.imshow('image', image)
     # cv2.waitKey(0)

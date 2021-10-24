@@ -75,7 +75,6 @@ def convert2pdf(uuid, filename):
         cpu_count = psutil.cpu_count(logical=False) - 1
         jobs = {}
         while queue:
-            print(jobs.keys())
             remove = []
             for data, thread in jobs.items():
                 if not thread.is_alive():
@@ -84,6 +83,8 @@ def convert2pdf(uuid, filename):
                 jobs.pop(data)
             if len(jobs) < cpu_count:
                 for i in range(cpu_count - len(jobs)):
+                    if not queue:
+                        break
                     uuid, page = queue.pop(0)
                     thread = Process(target=nlp_analysis, args=(uuid, page))
                     thread.start()
