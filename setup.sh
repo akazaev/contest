@@ -11,6 +11,6 @@ python3 -m spacy download ru_core_news_lg
 mkdir upload
 
 # init db
-cat converter/db/database.sql | sqlite3 documents.db
-cat converter/db/surnames.sql | sqlite3 documents.db
-cat converter/db/names.sql | sqlite3 documents.db
+mongoimport --type csv -d documents -c include --fields word converter/db/surnames.csv
+mongoimport --type csv -d documents -c include --fields word converter/db/names.csv
+mongoimport --type csv -d documents -c exclude --fields word converter/db/exclude.csv

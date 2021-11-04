@@ -1,3 +1,4 @@
+from datetime import datetime
 import json
 import os
 os.environ['OMP_THREAD_LIMIT'] = '1'
@@ -10,7 +11,10 @@ import nltk
 from nltk.corpus import stopwords
 from pymystem3 import Mystem
 from string import punctuation
-from converter import UPLOAD_PATH, db
+
+from converter import UPLOAD_PATH
+from converter.db.managers import NlpManager, IncludeManager, ExcludeManager
+
 
 # download stopwords corpus, you need to run it once
 nltk.download("stopwords")
@@ -19,11 +23,10 @@ nltk.download("stopwords")
 def nlp_analysis(uuid, page):
     # Create lemmatizer and stopwords list
 
-    with db.db() as connection:
-        connection.execute(f"insert or replace into nlp (uuid, page, status, json)"
-                           f" values('{uuid}', {page}, 'in_progress', '')")
-        include = connection.execute(f"select word from include").fetchall()
-        exclude = connection.execute(f"select word from exclude").fetchall()
+    NlpManager.upsert({'uuid': uuid, 'page': page, 'status': 'in_progress',
+                       'json': '', 'final': '', 'timestamp': datetime.now()})
+    include = IncludeManager.get()
+    exclude = ExcludeManager.get()
 
     exclude = set(word[0].lower() for word in exclude)
     include = set(word[0].lower() for word in include)
@@ -62,9 +65,7 @@ def nlp_analysis(uuid, page):
                                             config=custom_tessaract_config)
     # print(parsed_data)
 
-    with db.db() as connection:
-        connection.execute(f"update nlp set status = 'parsed' where uuid = '{uuid}' and page = {page}")
-
+    NlpManager.upsert({'uuid': uuid, 'page': page}, {'status': 'parsed'})
     nlp = spacy.load("ru_core_news_lg")
 
     boxes = {'nlp': []}
@@ -108,24 +109,18 @@ def nlp_analysis(uuid, page):
 
     # cv2.imshow('image', image)
     # cv2.waitKey(0)
-    with db.db() as connection:
-        connection.execute(f"update nlp set status = 'ready', json = '{json.dumps(boxes)}' where "
-                           f"uuid = '{uuid}' and page = {page}")
+    NlpManager.upsert({'uuid': uuid, 'page': page}, {'status': 'ready', 'json': json.dumps(boxes)})
     return boxes
 
 
 if __name__ == '__main__':
-    uuid = 'be3d9f24-9f0e-4498-b963-b2025fbe2fb8'
-    page = 2
+    uuid = '1cce34f4-50ae-4e53-916a-5072face7c07'
+    page = 1
 
-    # nlp_analysis((uuid, page))
+    #nlp_analysis(uuid, page)
 
-    with db.db() as connection:
-        connection.execute(f"select status, json from "
-                           f"nlp where uuid = '{uuid}' and page = {page}")
-        rows = connection.fetchall()
-    status, boxes = rows[0]
-    boxes = json.loads(boxes)
+    nlp = NlpManager.get_first(uuid=uuid, page=page)
+    boxes = json.loads(nlp.json)
 
     image_path = os.path.join(UPLOAD_PATH, f'{uuid}/pages', f'{page}.jpg')
     image = cv2.imread(image_path)

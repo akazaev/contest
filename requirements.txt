@@ -10,3 +10,4 @@ pillow
 psutil
 gunicorn
 pytesseract
+pymongo

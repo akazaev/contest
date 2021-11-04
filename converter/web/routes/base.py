@@ -7,7 +7,9 @@ from urllib.parse import urljoin
 from flask import Blueprint, request, templating, jsonify, send_from_directory
 from flask_wtf import FlaskForm, file
 
-from converter import UPLOAD_PATH, db
+from converter import UPLOAD_PATH
+from converter.db.managers import (
+    DocumentManager, NlpManager, ExcludeManager, IncludeManager)
 from converter.pdf_utils import convert2pdf
 from converter.image_utils import process_image
 
@@ -47,35 +49,32 @@ def load_document():
 def get_progress():
     doc_id = request.args.get('uuid')
 
-    with db.db() as connection:
-        connection.execute(f"select pages, ready, status, msg from "
-                           f"documents where uuid = '{doc_id}'")
-        rows = connection.fetchall()
-
+    document = DocumentManager.get_first(uuid=doc_id)
     response = {'uuid': doc_id, 'files': [], 'pages': None,
                 'ready': None, 'status': None, 'message': ''}
-    if rows:
-        pages, ready, status, msg = rows[0]
-        response['pages'] = pages
-        response['ready'] = ready
-        response['status'] = status
-        response['message'] = msg
-        if pages is not None:
+    if document:
+        response['pages'] = document.pages
+        response['ready'] = document.ready
+        response['status'] = document.status
+        response['message'] = document.msg
+        if document.pages is not None:
             response['files'] = [
                 urljoin(request.host_url, f'file/{doc_id}/{i + 1}.jpg')
-                for i in range(pages)
+                for i in range(document.pages)
             ]
     return jsonify(response)
 
 
 @base.route('/file/<uuid>/<page>.jpg')
 def load_page(uuid, page):
-    return send_from_directory(os.path.join(UPLOAD_PATH, f'{uuid}/pages'), f'{page}.jpg')
+    return send_from_directory(os.path.join(
+        UPLOAD_PATH, f'{uuid}/pages'), f'{page}.jpg')
 
 
 @base.route('/file/<uuid>/<page>_new.jpg')
 def load_new_page(uuid, page):
-    return send_from_directory(os.path.join(UPLOAD_PATH, f'{uuid}/pages'), f'{page}_new.jpg')
+    return send_from_directory(os.path.join(
+        UPLOAD_PATH, f'{uuid}/pages'), f'{page}_new.jpg')
 
 
 @base.route('/nlp/<uuid>/<page>')
@@ -85,17 +84,12 @@ def load_nlp(uuid, page):
     else:
         page = int(page.split('_')[1])
 
-    with db.db() as connection:
-        connection.execute(f"select status, json from "
-                           f"nlp where uuid = '{uuid}' and page = {page}")
-        rows = connection.fetchall()
-
+    nlp = NlpManager.get_first(uuid=uuid, page=page)
     response = {'uuid': uuid, 'page': page, 'status': None, 'boxes': None}
-    if rows:
-        status, boxes = rows[0]
-        response['status'] = status
-        if boxes:
-            boxes = json.loads(boxes)
+    if nlp:
+        response['status'] = nlp.status
+        if nlp.json:
+            boxes = json.loads(nlp.json)
             response['boxes'] = boxes
     else:
         response['status'] = 'not_found'
@@ -104,47 +98,38 @@ def load_nlp(uuid, page):
 
 @base.route('/', methods=('GET', ))
 def main():
-    with db.db() as connection:
-        connection.execute(f"select id, uuid, pages, ready, status, filename "
-                           f"from documents order by id desc")
-        rows = connection.fetchall()
     documents = []
-    for row in rows:
-        id, uuid, pages, ready, status, filename = row
+    for document in DocumentManager.get(sort=[('timestamp', -1)]):
         documents.append({
-            'id': id,
-            'uuid': uuid,
-            'pages': pages or '?',
-            'ready': ready or '?',
-            'status': status,
-            'filename': filename or uuid,
+            'uuid': document.uuid,
+            'pages': document.pages or '?',
+            'ready': document.ready or '?',
+            'status': document.status,
+            'filename': document.filename or document.uuid,
         })
 
     nlp = []
-    with db.db() as connection:
-        rows = connection.execute(f"select distinct uuid from nlp order by id desc").fetchall()
-        for row in rows:
-            uuid = row[0]
-            document = connection.execute(f"select id, filename, pages from documents where uuid = '{uuid}' order by id desc").fetchone()
-            if not document:
-                continue
-            pages = connection.execute(f"select id, page, status uuid from nlp where uuid = '{uuid}' order by page").fetchall()
-            if not pages:
-                continue
-            data = []
-            for page in pages:
-                data.append({
-                    'id': page[0],
-                    'page': page[1],
-                    'status': page[2],
-                })
-            nlp.append({
-                'id': document[0],
-                'uuid': uuid,
-                'filename': document[1],
-                'pages': document[2],
-                'data': data
+    nlps = NlpManager.get(sort=[('timestamp', -1)])
+    uuids = {nlp.uuid for nlp in nlps}
+    for uuid in uuids:
+        document = DocumentManager.get_first(uuid=uuid)
+        if not document:
+            continue
+        pages = NlpManager.get(uuid=uuid, sort=[('page', 1)])
+        if not pages:
+            continue
+        data = []
+        for page in pages:
+            data.append({
+                'page': page.page,
+                'status': page.status,
             })
+        nlp.append({
+            'uuid': uuid,
+            'filename': document.filename,
+            'pages': document.pages,
+            'data': data
+        })
 
     return templating.render_template('main.html', documents=documents, nlp=nlp)
 
@@ -153,11 +138,10 @@ def main():
 def include_words():
     data = request.json
     words = data.get('words', [])
-    with db.db() as connection:
-        for word in words:
-            word = word.lower()
-            connection.execute(f"insert into 'include' (word) values('{word}');")
-            connection.execute(f"delete from 'exclude' where word = '{word}'")
+    for word in words:
+        word = word.lower()
+        IncludeManager.upsert(word)
+        ExcludeManager.remove(word)
     return jsonify({'result': 'ok'})
 
 
@@ -165,11 +149,10 @@ def include_words():
 def exclude_words():
     data = request.json
     words = data.get('words', [])
-    with db.db() as connection:
-        for word in words:
-            word = word.lower()
-            connection.execute(f"insert into 'exclude' (word) values('{word}');")
-            connection.execute(f"delete from 'include' where word = '{word}'")
+    for word in words:
+        word = word.lower()
+        IncludeManager.remove(word)
+        ExcludeManager.upsert(word)
     return jsonify({'result': 'ok'})
 
 
@@ -180,13 +163,12 @@ def process_data(uuid, page):
     nlp = boxes.get('nlp', [])
     data = {'boxes': {'nlp': nlp}}
 
-    with db.db() as connection:
-        connection.execute(f"update nlp set status = 'updated', final = '{json.dumps(data)}' where "
-                           f"uuid = '{uuid}' and page = {page}")
-        for box in nlp:
-            word = box['text'].lower()
-            connection.execute(f"insert into 'include' (word) values('{word}');")
-            connection.execute(f"delete from 'exclude' where word = '{word}'")
+    NlpManager.upsert({"uuid": uuid, "page": page},
+                      {"status": "updated", "final": json.dumps(data)})
+    for box in nlp:
+        word = box['text'].lower()
+        IncludeManager.upsert(word)
+        ExcludeManager.remove(word)
 
     thread = Process(target=process_image, args=(uuid, page, data))
     thread.start()
