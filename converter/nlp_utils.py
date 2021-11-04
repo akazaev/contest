@@ -10,6 +10,7 @@ import spacy
 import nltk
 from nltk.corpus import stopwords
 from pymystem3 import Mystem
+import regex
 from string import punctuation
 
 from converter import UPLOAD_PATH
@@ -79,6 +80,10 @@ def nlp_analysis(uuid, page):
             # print([(w.text, w.pos_) for w in parsed_fio])
             text = str(parsed_fio).lower().strip()
             if not text or text.isspace():
+                # skip empty strings
+                continue
+            if not regex.match(r'^\p{IsCyrillic}+$', text):
+                # skip non-cyrillic strings
                 continue
 
             propn = False
