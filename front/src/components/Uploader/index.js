@@ -22,13 +22,13 @@ function Uploader({ setAppState }) {
     })
       .then((response) => response.json())
       .then((result) => {
-        console.log("Success:", result);
+        // console.log("Success:", result);
         setLoading(false);
         setAppState((state) => ({ ...state, docUuid: result?.uuid }));
       })
       .catch((error) => {
         setLoading(false);
-        console.error("Error:", error);
+        // console.error("Error:", error);
       });
   };
 
