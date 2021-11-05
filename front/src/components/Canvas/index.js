@@ -6,6 +6,9 @@ import DownloadPage from "../DownloadPage";
 import statuses from "../../constants/statuses";
 import Spinner from "../Spinner";
 
+const minScale = 0.05;
+const maxScale = 20;
+
 function downloadURI(uri, name) {
   let link = document.createElement("a");
   link.download = name;
@@ -68,7 +71,7 @@ function Canvas({ uuid, nlpBoxes, pageNumber, pageStatus, accuracy }) {
 
     const newScale = e.evt.deltaY > 0 ? oldScale * scaleBy : oldScale / scaleBy;
 
-    if (newScale < 20 && newScale > 0.05) {
+    if (newScale < maxScale && newScale > minScale) {
       setStageOptions({
         stageScale: newScale,
         stageX:
@@ -77,6 +80,15 @@ function Canvas({ uuid, nlpBoxes, pageNumber, pageStatus, accuracy }) {
         stageY:
           -(mousePointTo.y - stage.getPointerPosition().y / newScale) *
           newScale,
+      });
+    }
+  }
+
+  function changeScale(value) {
+    const scale = stageOptions.stageScale + value;
+    if (scale < maxScale && scale > minScale) {
+      setStageOptions({
+        stageScale: stageOptions.stageScale + value,
       });
     }
   }
@@ -108,6 +120,46 @@ function Canvas({ uuid, nlpBoxes, pageNumber, pageStatus, accuracy }) {
           className="w-full h-screen-half bg-gray-100 border-gray-500 border-2 rounded-lg overflow-hidden relative"
           ref={ref}
         >
+          <button
+            className="btn-white absolute top-16 right-4 z-50"
+            onClick={() => changeScale(0.1)}
+            title="Увеличить маcштаб"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </button>
+          <button
+            className="btn-white absolute top-28 right-4 z-50"
+            onClick={() => changeScale(-0.1)}
+            title="Уменьшить маcштаб"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M20 12H4"
+              />
+            </svg>
+          </button>
           <button
             className="btn-white absolute top-4 right-4 z-50"
             onClick={showAll}
