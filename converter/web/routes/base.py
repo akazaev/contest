@@ -106,6 +106,7 @@ def main():
             'ready': document.ready or '?',
             'status': document.status,
             'filename': document.filename or document.uuid,
+            'timestamp': document.timestamp,
         })
 
     nlp = []
@@ -128,8 +129,10 @@ def main():
             'uuid': uuid,
             'filename': document.filename,
             'pages': document.pages,
-            'data': data
+            'data': data,
+            'timestamp': document.timestamp,
         })
+        nlp = sorted(nlp, key=lambda x: x['timestamp'], reverse=True)
 
     return templating.render_template('main.html', documents=documents, nlp=nlp)
 

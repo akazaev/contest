@@ -70,7 +70,6 @@ def nlp_analysis(uuid, page):
     custom_tessaract_config = r'-l rus'
     parsed_data = pytesseract.image_to_data(image, output_type=Output.DICT,
                                             config=custom_tessaract_config)
-    # print(parsed_data)
 
     NlpManager.upsert({'uuid': uuid, 'page': page}, {'status': 'parsed'})
     nlp = spacy.load("ru_core_news_lg")
@@ -92,7 +91,7 @@ def nlp_analysis(uuid, page):
     full_text = ' '.join(full_text)
 
     persons = []
-    parsed = nlp(full_text)
+    parsed = nlp(preprocess_text(full_text))
     for named_entity in parsed.ents:
         if named_entity.label_ == 'PER':
             persons.append(named_entity.text.lower().strip())
@@ -137,8 +136,8 @@ def nlp_analysis(uuid, page):
 
 
 if __name__ == '__main__':
-    uuid = '27fb78c9-be93-4d1d-beec-185b3af5cc6a'
-    page = 3
+    uuid = 'c680467b-88ef-4544-930e-d29f0e305b66'
+    page = 2
 
     nlp_analysis(uuid, page)
 
