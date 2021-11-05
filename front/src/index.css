@@ -14,12 +14,28 @@
   @apply bg-blue-600;
 }
 
+.btn-purple {
+  @apply p-2 rounded-xl bg-purple-500 text-white font-bold;
+}
+
+.btn-purple:hover {
+  @apply bg-purple-600;
+}
+
 .btn-green {
   @apply bg-green-500 text-white font-bold py-2 px-4 rounded;
 }
 
 .btn-green:hover {
   @apply bg-green-600;
+}
+
+.btn-white {
+  @apply p-2 rounded-xl bg-white font-bold border border-purple-200;
+}
+
+.btn-white:hover {
+  @apply text-purple-600 bg-white;
 }
 
 @tailwind utilities;

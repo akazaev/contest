@@ -1,18 +1,44 @@
-import Page from '../Page'
-import statuses from '../../constants/statuses'
+import { useReducer } from "react";
+import Page from "../Page";
 
-function Pages({ progress }) {
-  if (progress?.status === statuses.ready) {
-    return (
-      <div>
-        {progress?.files.map((page, index) => (
-          <Page key={index} uuid={progress?.uuid} page={page} pageNumber={index+1} />
-        ))}
-      </div>
-    );
+function reducer(state, action) {
+  switch (action.type) {
+    case "editPage":
+      return state.map((item, index) => {
+        if (index !== action.payload.index) {
+          // This isn't the item we care about - keep it as-is
+          return item;
+        }
+
+        // Otherwise, this is the one we want - return an updated value
+        return action.payload.newPage;
+      });
+    default:
+      throw new Error();
+  }
+}
+
+function Pages({ pages = [], uuid }) {
+  const [state, dispatch] = useReducer(reducer, pages);
+
+  function handleEditPage(newPage, index) {
+    dispatch({ type: "editPage", payload: { newPage, index } });
   }
 
-  return <div>Обработка страниц еще идет...</div>;
+  console.log("STATE:", state);
+  return (
+    <div>
+      {state.map((page, index) => (
+        <Page
+          key={index}
+          uuid={uuid}
+          page={page}
+          pageIndex={index}
+          handleEditPage={handleEditPage}
+        />
+      ))}
+    </div>
+  );
 }
 
 export default Pages;

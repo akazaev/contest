@@ -2,11 +2,10 @@ import Uploader from "./components/Uploader";
 import { useState } from "react";
 import ProgressChecker from "./components/ProgressChecker";
 import Pages from "./components/Pages";
+import statuses from "./constants/statuses";
 
 function App() {
-  const [appState, setAppState] = useState({
-    // docUuid: "ba0183d9-9ece-4cc9-8a9e-69bd2c71780e",
-  });
+  const [appState, setAppState] = useState({});
 
   function clearUuid() {
     setAppState({});
@@ -17,7 +16,10 @@ function App() {
     <div className="App">
       <header className="text-gray-600 body-font bg-white shadow">
         <div className="container mx-auto flex flex-wrap p-5 flex-col md:flex-row items-center">
-          <a href="/" className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0">
+          <a
+            href="/"
+            className="flex title-font font-medium items-center text-gray-900 mb-4 md:mb-0"
+          >
             <svg
               xmlns="http://www.w3.org/2000/svg"
               className="w-10 h-10 text-white p-2 bg-black rounded-full hover:bg-red-500"
@@ -65,11 +67,20 @@ function App() {
       <div className="container mx-auto p-5">
         {appState?.docUuid ? (
           <>
-            <ProgressChecker
-              uuid={appState?.docUuid}
-              setAppState={setAppState}
-            />
-            <Pages progress={appState?.progress} />
+            {appState?.progress?.status === statuses.ready ? (
+              <Pages
+                pages={appState?.progress?.files}
+                uuid={appState?.progress?.uuid}
+              />
+            ) : (
+              <>
+                <ProgressChecker
+                  uuid={appState?.docUuid}
+                  setAppState={setAppState}
+                />
+                <div>Обработка страниц ещё идет...</div>
+              </>
+            )}
           </>
         ) : (
           <Uploader setAppState={setAppState} />
