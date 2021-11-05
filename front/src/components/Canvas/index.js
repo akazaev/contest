@@ -6,6 +6,9 @@ import DownloadPage from "../DownloadPage";
 import statuses from "../../constants/statuses";
 import Spinner from "../Spinner";
 
+const minScale = 0.05;
+const maxScale = 20;
+
 function downloadURI(uri, name) {
   let link = document.createElement("a");
   link.download = name;
@@ -15,8 +18,15 @@ function downloadURI(uri, name) {
   document.body.removeChild(link);
 }
 
-const TestImage = ({ src }) => {
-  const [image] = useImage(src, "Anonymous");
+const TestImage = ({ src, showAll }) => {
+  const [image, status] = useImage(src, "Anonymous");
+
+  useEffect(() => {
+    if (status === "loaded") {
+      showAll();
+    }
+  }, [status]);
+
   return <Image image={image} />;
 };
 
@@ -26,6 +36,7 @@ function Canvas({ uuid, nlpBoxes, pageNumber, pageStatus, accuracy }) {
   const inInProgress = pageStatus === statuses.in_progress;
   const [ref, { x, y, width, height, top, right, bottom, left }] = useMeasure();
   const stageRef = useRef(null);
+  const layerRef = useRef(null);
   const [boxes, setBoxes] = useState(nlpBoxes);
   const [stageOptions, setStageOptions] = useState({
     stageScale: 1,
@@ -60,31 +71,115 @@ function Canvas({ uuid, nlpBoxes, pageNumber, pageStatus, accuracy }) {
 
     const newScale = e.evt.deltaY > 0 ? oldScale * scaleBy : oldScale / scaleBy;
 
-    setStageOptions({
-      stageScale: newScale,
-      stageX:
-        -(mousePointTo.x - stage.getPointerPosition().x / newScale) * newScale,
-      stageY:
-        -(mousePointTo.y - stage.getPointerPosition().y / newScale) * newScale,
-    });
+    if (newScale < maxScale && newScale > minScale) {
+      setStageOptions({
+        stageScale: newScale,
+        stageX:
+          -(mousePointTo.x - stage.getPointerPosition().x / newScale) *
+          newScale,
+        stageY:
+          -(mousePointTo.y - stage.getPointerPosition().y / newScale) *
+          newScale,
+      });
+    }
   }
 
-  const handleExport = () => {
-    stageRef.current.resetZoom();
-    const uri = stageRef.current.toDataURL();
-    downloadURI(uri, "export.png");
+  function changeScale(value) {
+    const scale = stageOptions.stageScale + value;
+    if (scale < maxScale && scale > minScale) {
+      setStageOptions({
+        stageScale: stageOptions.stageScale + value,
+      });
+    }
+  }
+
+  const showAll = () => {
+    const layerBox = layerRef.current.getClientRect({
+      relativeTo: stageRef.current,
+    });
+    // If you need padding on stage
+    const padding = 0;
+    const scale = Math.min(
+      stageRef.current.width() / (layerBox.width + padding * 2),
+      stageRef.current.height() / (layerBox.height + padding * 2)
+    );
+    setStageOptions({
+      stageScale: scale,
+      // Fit to center
+      stageX: stageRef.current.width() / 2 - (layerBox.width / 2) * scale,
+      stageY: -layerBox.y * scale + padding * scale,
+      // stageX: -layerBox.x * scale + padding * scale,
+      // stageY: -layerBox.y * scale + padding * scale,
+    });
   };
 
   return (
     <div className="flex flex-wrap w-full mt-8">
-      {/*<button className="btn-blue mb-2" onClick={handleExport}>*/}
-      {/*  Скачать png*/}
-      {/*</button>*/}
       <div className="lg:w-4/5 md:w-1/2 md:pr-10">
         <div
-          className="w-full h-screen-half border-gray-500 border-2 rounded-lg overflow-hidden"
+          className="w-full h-screen-half bg-gray-100 border-gray-500 border-2 rounded-lg overflow-hidden relative"
           ref={ref}
         >
+          <button
+            className="btn-white absolute top-16 right-4 z-50"
+            onClick={() => changeScale(0.1)}
+            title="Увеличить маcштаб"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4v16m8-8H4"
+              />
+            </svg>
+          </button>
+          <button
+            className="btn-white absolute top-28 right-4 z-50"
+            onClick={() => changeScale(-0.1)}
+            title="Уменьшить маcштаб"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M20 12H4"
+              />
+            </svg>
+          </button>
+          <button
+            className="btn-white absolute top-4 right-4 z-50"
+            onClick={showAll}
+            title="Показать всё"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M10 21h7a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v11m0 5l4.879-4.879m0 0a3 3 0 104.243-4.242 3 3 0 00-4.243 4.242z"
+              />
+            </svg>
+          </button>
           <Stage
             draggable
             width={width}
@@ -96,9 +191,10 @@ function Canvas({ uuid, nlpBoxes, pageNumber, pageStatus, accuracy }) {
             y={stageOptions.stageY}
             ref={stageRef}
           >
-            <Layer>
+            <Layer ref={layerRef}>
               {uuid && pageNumber && (
                 <TestImage
+                  showAll={showAll}
                   src={`${process.env.REACT_APP_API}/file/${uuid}/${pageNumber}.jpg`}
                 />
               )}

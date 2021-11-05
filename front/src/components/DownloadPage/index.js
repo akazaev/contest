@@ -59,18 +59,18 @@ function DownloadPage({ boxes, uuid, pageNumber }) {
         })
           .then((response) => response.json())
           .then((result) => {
-            console.log("Success:", result);
+            // console.log("Success:", result);
             if (result.status === statuses.obfuscated) {
               download(uuid, pageNumber);
             }
             setProgress(result);
           })
           .catch((error) => {
-            console.error("Error:", error);
+            // console.error("Error:", error);
           });
       }
     },
-    isReady || isObfuscated ? null : 5000
+    isReady || isObfuscated ? null : 3000
   );
 
   return (

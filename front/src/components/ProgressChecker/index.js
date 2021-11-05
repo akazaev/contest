@@ -25,7 +25,7 @@ function ProgressChecker({ uuid, setAppState }) {
           });
       }
     },
-    isReady ? null : 5000
+    isReady ? null : 2000
   );
 
   return (
