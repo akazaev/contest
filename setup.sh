@@ -10,6 +10,6 @@ python3 -m spacy download ru_core_news_lg
 mkdir upload
 
 # init db
-mongoimport --type csv -d documents -c include --fields word converter/db/surnames.csv
-mongoimport --type csv -d documents -c include --fields word converter/db/names.csv
-mongoimport --type csv -d documents -c exclude --fields word converter/db/exclude.csv
+mongoimport --type csv --mode upsert -d documents -c include --fields word converter/db/surnames.csv
+mongoimport --type csv --mode upsert -d documents -c include --fields word converter/db/names.csv
+mongoimport --type csv --mode upsert -d documents -c exclude --fields word converter/db/exclude.csv

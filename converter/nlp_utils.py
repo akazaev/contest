@@ -21,12 +21,6 @@ from converter.db.managers import NlpManager, IncludeManager, ExcludeManager
 nltk.download("stopwords")
 
 
-def contains(d, w):
-    for t in d:
-        if w in t:
-            return True
-
-
 def nlp_analysis(uuid, page):
     # Create lemmatizer and stopwords list
 
@@ -90,11 +84,14 @@ def nlp_analysis(uuid, page):
             full_text.append(parsed_data['text'][i])
     full_text = ' '.join(full_text)
 
-    persons = []
+    persons = set()
     parsed = nlp(preprocess_text(full_text))
     for named_entity in parsed.ents:
         if named_entity.label_ == 'PER':
-            persons.append(named_entity.text.lower().strip())
+            for part in named_entity.text.lower().strip().split():
+                persons.add(part)
+
+    print(persons)
 
     for i in range(len(data)):
         # text text by nlp
@@ -114,7 +111,7 @@ def nlp_analysis(uuid, page):
             c += 1
             person = True
 
-        if text not in exclude and contains(persons, text):
+        if text not in exclude and text in persons:
             n += 1
             person = True
 
@@ -137,7 +134,7 @@ def nlp_analysis(uuid, page):
 
 if __name__ == '__main__':
     uuid = 'c680467b-88ef-4544-930e-d29f0e305b66'
-    page = 2
+    page = 1
 
     nlp_analysis(uuid, page)
 
