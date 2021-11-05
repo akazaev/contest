@@ -67,7 +67,7 @@ def nlp_analysis(uuid, page):
     # cv2.imshow('invert', invert)
 
     # Perform text extraction
-    custom_tessaract_config = r'-l rus'
+    custom_tessaract_config = r'-l rus+eng'
     parsed_data = pytesseract.image_to_data(image, output_type=Output.DICT,
                                             config=custom_tessaract_config)
 
