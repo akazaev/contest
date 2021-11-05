@@ -21,6 +21,12 @@ from converter.db.managers import NlpManager, IncludeManager, ExcludeManager
 nltk.download("stopwords")
 
 
+def contains(d, w):
+    for t in d:
+        if w in t:
+            return True
+
+
 def nlp_analysis(uuid, page):
     # Create lemmatizer and stopwords list
 
@@ -71,45 +77,57 @@ def nlp_analysis(uuid, page):
 
     boxes = {'nlp': []}
     c = n = 0
-    n_boxes = len(parsed_data['text'])
-    for i in range(n_boxes):
-        # print(parsed_data['conf'][i])
+    data = []
+    full_text = []
+    for i in range(len(parsed_data['text'])):
         if float(parsed_data['conf'][i]) > 10:
-            # parse text by nlp
-            parsed_fio = nlp(preprocess_text(parsed_data['text'][i]))
-            # print([(w.text, w.pos_) for w in parsed_fio])
-            text = str(parsed_fio).lower().strip()
-            if not text or text.isspace():
-                # skip empty strings
-                continue
-            if not regex.match(r'^\p{IsCyrillic}+$', text):
-                # skip non-cyrillic strings
-                continue
-
-            propn = False
-            if text in exclude:
-                propn = False
-            elif text in include or 'PROPN' in {w.pos_ for w in parsed_fio}:
-                propn = True
-                n += 1
-
-            if propn and text in include:
-                c += 1
-
-            # print(str(parsed_fio))
-            x, y, w, h = (parsed_data['left'][i],
-                          parsed_data['top'][i],
-                          parsed_data['width'][i],
-                          parsed_data['height'][i])
-            # image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 0), -1)
-            boxes['nlp'].append({
-                'x': x,
-                'y': y,
-                'w': w,
-                'h': h,
-                'propn': propn,
-                'text': text
+            data.append({
+                'text': parsed_data['text'][i],
+                'left': parsed_data['left'][i],
+                'top': parsed_data['top'][i],
+                'width': parsed_data['width'][i],
+                'height': parsed_data['height'][i],
             })
+            full_text.append(parsed_data['text'][i])
+    full_text = ' '.join(full_text)
+
+    persons = []
+    parsed = nlp(full_text)
+    for named_entity in parsed.ents:
+        if named_entity.label_ == 'PER':
+            persons.append(named_entity.text.lower().strip())
+
+    for i in range(len(data)):
+        # text text by nlp
+        parsed = nlp(preprocess_text(data[i]['text']))
+        # print([(w.text, w.pos_) for w in parsed_fio])
+        text = str(parsed).lower().strip()
+        if not text or text.isspace():
+            # skip empty strings
+            continue
+        if not regex.match(r'^\p{IsCyrillic}+$', text):
+            # skip non-cyrillic strings
+            continue
+
+        person = False
+        if text not in exclude and text in include:
+            n += 1
+            c += 1
+            person = True
+
+        if text not in exclude and contains(persons, text):
+            n += 1
+            person = True
+
+        boxes['nlp'].append({
+            'x': data[i]['left'],
+            'y': data[i]['top'],
+            'w': data[i]['width'],
+            'h': data[i]['height'],
+            'propn': person,
+            'text': text
+        })
+
     boxes['value'] = c/n if n else 0
 
     # cv2.imshow('image', image)
@@ -119,10 +137,10 @@ def nlp_analysis(uuid, page):
 
 
 if __name__ == '__main__':
-    uuid = '1cce34f4-50ae-4e53-916a-5072face7c07'
-    page = 1
+    uuid = '27fb78c9-be93-4d1d-beec-185b3af5cc6a'
+    page = 3
 
-    #nlp_analysis(uuid, page)
+    nlp_analysis(uuid, page)
 
     nlp = NlpManager.get_first(uuid=uuid, page=page)
     boxes = json.loads(nlp.json)
@@ -132,17 +150,23 @@ if __name__ == '__main__':
     print(boxes['value'])
 
     words = boxes['nlp']
+    block = 19
+    i = 0
     for word in words:
         x = word['x']
         y = word['y']
         w = word['w']
         h = word['h']
+        #print(b)
+        #if block != b:
+        #    continue
         propn = word['propn']
         if propn:
-            text = word['text']
-            #if text != 'сергей':
-            #    continue
-            # print(text, (x, y, w, h))
             image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 0), -1)
+        else:
+            image = cv2.rectangle(image, (x, y), (x + w, y + h), (0, 0, 0), 0)
+        i += 1
+        # if i > 54:
+        #     break
     image_path = os.path.join(UPLOAD_PATH, f'{uuid}/pages', f'{page}_test.jpg')
     cv2.imwrite(image_path, image)
