@@ -23,7 +23,8 @@ function download(uuid, pageNumber) {
     });
 }
 
-function DownloadPage({ boxes, uuid, pageNumber }) {
+function DownloadPage({ boxes, uuid, pageIndex }) {
+  const pageNumber = pageIndex + 1;
   const [progress, setProgress] = useState({ status: statuses.ready });
   const isObfuscated = progress?.status === statuses.obfuscated;
   const isReady = progress?.status === statuses.ready;
@@ -43,11 +44,11 @@ function DownloadPage({ boxes, uuid, pageNumber }) {
     })
       .then((response) => response.json())
       .then((result) => {
-        console.log("Success:", result);
+        // console.log("Success:", result);
         setProgress({});
       })
       .catch((error) => {
-        console.error("Error:", error);
+        // console.error("Error:", error);
       });
   }
 
@@ -76,7 +77,11 @@ function DownloadPage({ boxes, uuid, pageNumber }) {
   return (
     <>
       {isReady || isObfuscated ? (
-        <button className="btn-blue w-full" disabled={inInProgress} onClick={handleDownload}>
+        <button
+          className="btn-blue w-full"
+          disabled={inInProgress}
+          onClick={handleDownload}
+        >
           Скачать
         </button>
       ) : (

@@ -1,5 +1,8 @@
-import { useReducer } from "react";
+import React, { useReducer } from "react";
 import Page from "../Page";
+
+export const StateContext = React.createContext();
+export const DispatchContext = React.createContext();
 
 function reducer(state, action) {
   switch (action.type) {
@@ -25,19 +28,23 @@ function Pages({ pages = [], uuid }) {
     dispatch({ type: "editPage", payload: { newPage, index } });
   }
 
-  console.log("STATE:", state);
   return (
-    <div>
-      {state.map((page, index) => (
-        <Page
-          key={index}
-          uuid={uuid}
-          page={page}
-          pageIndex={index}
-          handleEditPage={handleEditPage}
-        />
-      ))}
-    </div>
+    <DispatchContext.Provider value={dispatch}>
+      <StateContext.Provider value={state}>
+        <div>
+          {state.map((page, index) => (
+            <Page
+              key={`key_page_${index}`}
+              uuid={uuid}
+              page={page}
+              pagesCount={state.length}
+              pageIndex={index}
+              handleEditPage={handleEditPage}
+            />
+          ))}
+        </div>
+      </StateContext.Provider>
+    </DispatchContext.Provider>
   );
 }
 
