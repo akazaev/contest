@@ -45,8 +45,9 @@ function Canvas({ uuid, nlpBoxes, pageNumber, pageStatus, accuracy }) {
   });
 
   function removeWord(index) {
+    const { text } = boxes[index];
     const newBoxes = boxes.map((box, i) => {
-      if (index === i) {
+      if (text === box?.text) {
         return { ...box, propn: !box?.propn };
       }
       return box;
