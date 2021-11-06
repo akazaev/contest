@@ -11,7 +11,7 @@ function App() {
     setAppState({});
   }
 
-  console.log(appState);
+  // console.log(appState);
   return (
     <div className="App">
       <header className="text-gray-600 body-font bg-white shadow">

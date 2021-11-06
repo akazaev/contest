@@ -16,12 +16,12 @@ function ProgressChecker({ uuid, setAppState }) {
         })
           .then((response) => response.json())
           .then((result) => {
-            console.log("Success:", result);
+            // console.log("Success:", result);
             setProgress(result);
             setAppState((state) => ({ ...state, progress: result }));
           })
           .catch((error) => {
-            console.error("Error:", error);
+            // console.error("Error:", error);
           });
       }
     },
