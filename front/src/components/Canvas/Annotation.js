@@ -1,7 +1,14 @@
 import { Rect, Transformer } from "react-konva";
 import { useEffect, useRef } from "react";
 
-function Annotation({ shapeProps, isSelected, onSelect, onChange, index }) {
+function Annotation({
+  shapeProps,
+  isSelected,
+  onSelect,
+  onChange,
+  index,
+  isPropn,
+}) {
   const shapeRef = useRef();
   const transformRef = useRef();
 
@@ -24,7 +31,8 @@ function Annotation({ shapeProps, isSelected, onSelect, onChange, index }) {
   return (
     <>
       <Rect
-        fill="transparent"
+        fill={isPropn ? "black" : "transparent"}
+        opacity={isPropn ? 0.5 : 1}
         stroke="#10b981"
         onMouseDown={() => onSelect(index)}
         ref={shapeRef}
