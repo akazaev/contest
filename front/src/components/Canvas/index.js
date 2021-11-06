@@ -98,11 +98,17 @@ function Canvas({ uuid, pageIndex, pageStatus, handleEditBoxes }) {
   }
 
   function changeScale(value) {
-    const scale = stageOptions.stageScale + value;
-    if (scale < maxScale && scale > minScale) {
+    const newScale = stageOptions.stageScale + value;
+    if (newScale < maxScale && newScale > minScale) {
+      const layerBox = layerRef.current.getClientRect({
+        relativeTo: stageRef.current,
+      });
       setStageOptions({
         ...stageOptions,
-        stageScale: stageOptions.stageScale + value,
+        stageScale: newScale,
+        stageX: stageRef.current.width() / 2 - (layerBox.width / 2) * newScale,
+        stageY:
+          stageRef.current.height() / 2 - (layerBox.height / 2) * newScale,
       });
     }
   }
@@ -164,8 +170,22 @@ function Canvas({ uuid, pageIndex, pageStatus, handleEditBoxes }) {
     }
   }
 
+  function onDragEndStage(e) {
+    if (!stageOptions.editMode) {
+      setStageOptions({
+        ...stageOptions,
+        stageX: e.target.x(),
+        stageY: e.target.y(),
+      });
+    }
+  }
+
   function handleMouseMoveStage(event) {
-    if (selectedIndex === null && newAnnotation.length === 1) {
+    if (
+      selectedIndex === null &&
+      newAnnotation.length === 1 &&
+      stageOptions.editMode
+    ) {
       const sx = newAnnotation[0].x;
       const sy = newAnnotation[0].y;
 
@@ -191,7 +211,11 @@ function Canvas({ uuid, pageIndex, pageStatus, handleEditBoxes }) {
   }
 
   function handleMouseUpStage() {
-    if (selectedIndex === null && newAnnotation.length === 1) {
+    if (
+      selectedIndex === null &&
+      newAnnotation.length === 1 &&
+      stageOptions.editMode
+    ) {
       if (
         Math.abs(newAnnotation[0].w) > 20 ||
         Math.abs(newAnnotation[0].h) > 20
@@ -342,6 +366,7 @@ function Canvas({ uuid, pageIndex, pageStatus, handleEditBoxes }) {
         onMouseMove={handleMouseMoveStage}
         onMouseUp={handleMouseUpStage}
         onMouseEnter={handleMouseEnterStage}
+        onDragEnd={onDragEndStage}
       >
         <Layer ref={layerRef}>
           {imageUrl && (
