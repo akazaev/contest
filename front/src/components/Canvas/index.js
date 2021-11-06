@@ -365,6 +365,7 @@ function Canvas({ uuid, pageIndex, pageStatus, handleEditBoxes }) {
                   width: box?.w,
                   height: box?.h,
                 }}
+                isPropn={box?.propn}
                 isSelected={index === selectedIndex}
                 onSelect={selectAnnotation}
                 index={index}
