@@ -173,6 +173,7 @@ def process_data(uuid, page):
         IncludeManager.upsert({'word': word})
         ExcludeManager.remove({'word': word})
 
+    page = int(page)
     thread = Process(target=process_image, args=(uuid, page, data))
     thread.start()
     return jsonify({'result': 'ok'})

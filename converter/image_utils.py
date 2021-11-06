@@ -34,7 +34,7 @@ if __name__ == '__main__':
     #         ]
     #     }
     # }
-    uuid = '7a7b8d3f-3850-49b7-a080-80dff1a5aac4'
+    uuid = 'e6ad3ce1-7591-43df-9758-f831db1403e9'
     page = 2
     nlp = NlpManager.get_first(uuid=uuid, page=page)
     boxes = json.loads(nlp.json)
