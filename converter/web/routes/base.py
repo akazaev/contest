@@ -101,17 +101,17 @@ def main():
     documents = []
     for document in DocumentManager.get(sort=[('timestamp', -1)]):
         documents.append({
-            'uuid': document.uuid,
-            'pages': document.pages or '?',
-            'ready': document.ready or '?',
-            'status': document.status,
-            'filename': document.filename or document.uuid,
-            'timestamp': document.timestamp,
+            'uuid': document['uuid'],
+            'pages': document['pages'] or '?',
+            'ready': document['ready'] or '?',
+            'status': document['status'],
+            'filename': document['filename'] or document['uuid'],
+            'timestamp': document['timestamp'],
         })
 
     nlp = []
     nlps = NlpManager.get(sort=[('timestamp', -1)])
-    uuids = {nlp.uuid for nlp in nlps}
+    uuids = {nlp['uuid'] for nlp in nlps}
     for uuid in uuids:
         document = DocumentManager.get_first(uuid=uuid)
         if not document:
@@ -122,8 +122,8 @@ def main():
         data = []
         for page in pages:
             data.append({
-                'page': page.page,
-                'status': page.status,
+                'page': page['page'],
+                'status': page['status'],
             })
         nlp.append({
             'uuid': uuid,

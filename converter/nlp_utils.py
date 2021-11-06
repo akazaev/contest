@@ -29,8 +29,8 @@ def nlp_analysis(uuid, page):
     include = IncludeManager.get()
     exclude = ExcludeManager.get()
 
-    exclude = set(word[0].lower() for word in exclude)
-    include = set(word[0].lower() for word in include)
+    exclude = set(word['word'].lower() for word in exclude)
+    include = set(word['word'].lower() for word in include)
     image_path = os.path.join(UPLOAD_PATH, f'{uuid}/pages', f'{page}.jpg')
 
     os.environ['OMP_THREAD_LIMIT'] = '1'

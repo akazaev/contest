@@ -86,9 +86,4 @@ class DBManager:
                     if isinstance(field, tuple) else (field, ASCENDING)
                     for field in sort])
 
-            items = []
-            for r in response:
-                r = dict(r)
-                r.pop('_id', None)
-                items.append(cls.model(**r))
-            return items
+            return response
