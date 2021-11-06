@@ -143,8 +143,8 @@ def include_words():
     words = data.get('words', [])
     for word in words:
         word = word.lower()
-        IncludeManager.upsert(word)
-        ExcludeManager.remove(word)
+        IncludeManager.upsert({'word': word})
+        ExcludeManager.remove({'word': word})
     return jsonify({'result': 'ok'})
 
 
@@ -154,8 +154,8 @@ def exclude_words():
     words = data.get('words', [])
     for word in words:
         word = word.lower()
-        IncludeManager.remove(word)
-        ExcludeManager.upsert(word)
+        IncludeManager.remove({'word': word})
+        ExcludeManager.upsert({'word': word})
     return jsonify({'result': 'ok'})
 
 
@@ -170,8 +170,8 @@ def process_data(uuid, page):
                       {"status": "updated", "final": json.dumps(data)})
     for box in nlp:
         word = box['text'].lower()
-        IncludeManager.upsert(word)
-        ExcludeManager.remove(word)
+        IncludeManager.upsert({'word': word})
+        ExcludeManager.remove({'word': word})
 
     thread = Process(target=process_image, args=(uuid, page, data))
     thread.start()
