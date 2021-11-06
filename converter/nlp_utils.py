@@ -125,6 +125,8 @@ def nlp_analysis(uuid, page):
         })
 
     boxes['value'] = c/n if n else 0
+    boxes['c'] = c
+    boxes['n'] = n
 
     # cv2.imshow('image', image)
     # cv2.waitKey(0)
@@ -139,7 +141,7 @@ if __name__ == '__main__':
     nlp_analysis(uuid, page)
 
     nlp = NlpManager.get_first(uuid=uuid, page=page)
-    boxes = json.loads(nlp.json)
+    boxes = json.loads(nlp['json'])
 
     image_path = os.path.join(UPLOAD_PATH, f'{uuid}/pages', f'{page}.jpg')
     image = cv2.imread(image_path)

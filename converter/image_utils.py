@@ -37,7 +37,7 @@ if __name__ == '__main__':
     uuid = 'e6ad3ce1-7591-43df-9758-f831db1403e9'
     page = 2
     nlp = NlpManager.get_first(uuid=uuid, page=page)
-    boxes = json.loads(nlp.json)
+    boxes = json.loads(nlp['json'])
     boxes['nlp'] = [box for box in boxes['nlp'] if box['propn']]
 
     process_image(uuid, page, {'boxes': boxes})

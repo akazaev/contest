@@ -53,14 +53,14 @@ def get_progress():
     response = {'uuid': doc_id, 'files': [], 'pages': None,
                 'ready': None, 'status': None, 'message': ''}
     if document:
-        response['pages'] = document.pages
-        response['ready'] = document.ready
-        response['status'] = document.status
-        response['message'] = document.msg
-        if document.pages is not None:
+        response['pages'] = document['pages']
+        response['ready'] = document['ready']
+        response['status'] = document['status']
+        response['message'] = document['msg']
+        if document['pages'] is not None:
             response['files'] = [
                 urljoin(request.host_url, f'file/{doc_id}/{i + 1}.jpg')
-                for i in range(document.pages)
+                for i in range(document['pages'])
             ]
     return jsonify(response)
 
@@ -79,17 +79,14 @@ def load_new_page(uuid, page):
 
 @base.route('/nlp/<uuid>/<page>')
 def load_nlp(uuid, page):
-    if page.isdigit():
-        page = int(page)
-    else:
-        page = int(page.split('_')[1])
+    page = int(page)
 
     nlp = NlpManager.get_first(uuid=uuid, page=page)
     response = {'uuid': uuid, 'page': page, 'status': None, 'boxes': None}
     if nlp:
-        response['status'] = nlp.status
-        if nlp.json:
-            boxes = json.loads(nlp.json)
+        response['status'] = nlp['status']
+        if nlp['json']:
+            boxes = json.loads(nlp['json'])
             response['boxes'] = boxes
     else:
         response['status'] = 'not_found'
@@ -127,10 +124,10 @@ def main():
             })
         nlp.append({
             'uuid': uuid,
-            'filename': document.filename,
-            'pages': document.pages,
+            'filename': document['filename'],
+            'pages': document['pages'],
             'data': data,
-            'timestamp': document.timestamp,
+            'timestamp': document['timestamp'],
         })
         nlp = sorted(nlp, key=lambda x: x['timestamp'], reverse=True)
 
@@ -165,15 +162,28 @@ def process_data(uuid, page):
     boxes = data.get('boxes', {})
     nlp = boxes.get('nlp', [])
     data = {'boxes': {'nlp': nlp}}
+    page = int(page)
 
     NlpManager.upsert({"uuid": uuid, "page": page},
                       {"status": "updated", "final": json.dumps(data)})
+    after = set()
     for box in nlp:
         word = box['text'].lower()
         IncludeManager.upsert({'word': word})
         ExcludeManager.remove({'word': word})
+        after.add(word)
 
-    page = int(page)
+    before = set()
+    nlp = NlpManager.get_first(uuid=uuid, page=page)
+    boxes = json.loads(nlp['json'])
+    words = boxes['nlp']
+    for word in words:
+        propn = word['propn']
+        if propn:
+            before.add(word['text'].lower())
+    for word in before - after:
+        ExcludeManager.upsert({'word': word})
+
     thread = Process(target=process_image, args=(uuid, page, data))
     thread.start()
     return jsonify({'result': 'ok'})

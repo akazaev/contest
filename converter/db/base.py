@@ -72,9 +72,11 @@ class DBManager:
         db = client.documents
         if first:
             response = db[cls.collection].find_one(kwargs)
+            if not response:
+                return
             response = dict(response)
             response.pop('_id', None)
-            return cls.model(**response)
+            return response
         else:
             if fields:
                 response = db[cls.collection].find(kwargs, fields)
